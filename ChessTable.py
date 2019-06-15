@@ -19,16 +19,12 @@ gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 #--------pronalazenje linija na slici table----------------
 
 edges = cv2.Canny(gray,50,150,apertureSize = 3)
-lines = cv2.HoughLines(edges,1,np.pi/180,350)
+lines = cv2.HoughLines(edges,1,np.pi/180,320)
 
 # maxy=0
 # miny=sys.maxsize
 
-
-# for i in range (len(lines)-1,0,-1):
-#     print(lines[i,0])
-#     if ((lines[i,0,0]==lines[i-1,0,0]) and (lines[i,0,1]==lines[i-1,0,1])):
-#         lines=np.delete(lines,i,0)
+lines=np.unique(lines,axis=0)
 
 for line in lines:
     rho,theta = line[0]
@@ -51,20 +47,40 @@ for line in lines:
     #if y1 < miny:
     #		miny = y1
 
+#------------------pronalazenje preseka linija---------------------
 
-#------------provera duplikata----------
-
-lines=np.sort(lines,0)
-
-print(lines)
+vertlines=lines[np.where(lines[:,:,1]==np.pi/2)]
+horlines=lines[np.where(lines[:,:,1]==0)]
 
 
-print(len(lines))
+def intersection(line1, line2):
+    """Finds the intersection of two lines given in Hesse normal form.
+
+    Returns closest integer pixel locations."""
+
+    rho1=line1[0]
+    theta1 = line1[1]
+    rho2=line2[0]
+    theta2 = line2[1]
+    A = np.array([
+        [np.cos(theta1), np.sin(theta1)],
+        [np.cos(theta2), np.sin(theta2)]
+    ])
+    b = np.array([[rho1], [rho2]])
+    x0, y0 = np.linalg.solve(A, b)
+    x0, y0 = int(np.round(x0)), int(np.round(y0))
+    return [[x0, y0]]
+
+intersections = []
+for line1 in vertlines:
+        for line2 in horlines:
+            intersections.append(intersection(line1, line2))
+
+for i in intersections:
+    plt.scatter(i[0][0],i[0][1])
 
 
-
-
-print(lines)
+#-----sredjivane nedetektovanih ivica slike----------------
 
 plt.imshow(img)
 plt.show()
