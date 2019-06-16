@@ -76,11 +76,41 @@ for line1 in vertlines:
         for line2 in horlines:
             intersections.append(intersection(line1, line2))
 
-for i in intersections:
-    plt.scatter(i[0][0],i[0][1])
+#-------brisanje duplih preseka-----
 
+intersections.sort()
+
+icopy = intersections;
+
+for i in range((icopy.__len__()-1),-1,-1):
+    if( (intersections[i][0][1]-intersections[i-1][0][1])<2.5):
+        intersections.remove(intersections[i])
 
 #-----sredjivane nedetektovanih ivica slike----------------
+
+fieldLen=intersections[1][0][1]-intersections[0][0][1]
+
+x=[]
+for i in intersections:
+    x.append(i[0][0])
+x=np.unique(x)
+
+if(intersections[0][0][1]-fieldLen) in range(-5,5): #fali gornja ivica
+    for i in x:
+        intersections.append([[i,2]])
+
+if(intersections[-1][0][1]+fieldLen) in range(-5+img.shape[1],5+img.shape[1]): #fali donja ivica
+    for i in x:
+        # if(intersections[-1][0][1]+fieldLen)>img.shape[1]:
+        intersections.append([[i, img.shape[1]-2]])
+
+intersections.sort()
+print(intersections.__len__())
+print(intersections)
+
+
+for i in intersections:
+    plt.scatter(i[0][0],i[0][1])
 
 plt.imshow(img)
 plt.show()
