@@ -124,9 +124,17 @@ if(intersections[0][0][0]-fieldWid) in range(-5,5): #fali leva ivica
         #intersections.append([[i,2]])
         intersections.append([[firstXrowdot,i]])
 
-
-
 intersections.sort()
+
+polja=[]
+for i in range(0,64):
+    polja.append()
+
+
+
+
+
+
 
 print(intersections.__len__())
 print(intersections)
