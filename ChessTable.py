@@ -1,4 +1,5 @@
 import sys
+from dataclasses import field
 
 import numpy as np
 import cv2 # OpenCV biblioteka
@@ -21,8 +22,6 @@ gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 edges = cv2.Canny(gray,50,150,apertureSize = 3)
 lines = cv2.HoughLines(edges,1,np.pi/180,320)
 
-# maxy=0
-# miny=sys.maxsize
 
 lines=np.unique(lines,axis=0)
 
@@ -38,14 +37,6 @@ for line in lines:
     y2 = int(y0 - 1000*(a))
     cv2.line(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
-    # if y1>maxy:
-    # 	maxy=y1
-    # if y2>maxy:
-    # 	maxy=y2
-    # if y2<miny:
-    # 	min=y2
-    #if y1 < miny:
-    #		miny = y1
 
 #------------------pronalazenje preseka linija---------------------
 
@@ -76,7 +67,7 @@ for line1 in vertlines:
         for line2 in horlines:
             intersections.append(intersection(line1, line2))
 
-#-------brisanje duplih preseka-----
+#---------------brisanje duplih preseka-----------
 
 intersections.sort()
 
@@ -86,7 +77,7 @@ for i in range((icopy.__len__()-1),-1,-1):
     if( (intersections[i][0][1]-intersections[i-1][0][1])<2.5):
         intersections.remove(intersections[i])
 
-#-----sredjivane nedetektovanih ivica slike----------------
+#------------------dodavanje nedetektovanih ivica slike----------------
 
 fieldLen=intersections[1][0][1]-intersections[0][0][1]
 
@@ -95,16 +86,48 @@ for i in intersections:
     x.append(i[0][0])
 x=np.unique(x)
 
-if(intersections[0][0][1]-fieldLen) in range(-5,5): #fali gornja ivica
-    for i in x:
-        intersections.append([[i,2]])
+firstYrowdot=intersections[0][0][1]-fieldLen+2 #adding this as Y coord to top row instead of zero to make space to make algorithm more flexible
+lastYrowdot=intersections[-1][0][1]+fieldLen-2
+
 
 if(intersections[-1][0][1]+fieldLen) in range(-5+img.shape[1],5+img.shape[1]): #fali donja ivica
     for i in x:
-        # if(intersections[-1][0][1]+fieldLen)>img.shape[1]:
-        intersections.append([[i, img.shape[1]-2]])
+        intersections.append([[i,lastYrowdot]])
+        #intersections.append([[i, img.shape[1]-2]])
+
+if(intersections[0][0][1]-fieldLen) in range(-5,5): #fali gornja ivica
+    for i in x:
+        #intersections.append([[i,2]])
+        intersections.append([[i,firstYrowdot]])
+
+
+intersections=sorted(intersections, key=lambda coor:coor[0][1])
+
+
+fieldWid=intersections[1][0][0]-intersections[0][0][0]
+
+y=[]
+for i in intersections:
+    y.append(i[0][1])
+y=np.unique(y)
+
+firstXrowdot=intersections[0][0][0]-fieldWid+2 #adding this as X coord to top row instead of zero to make space to make algorithm more flexible
+lastXrowdot=intersections[-1][0][0]+fieldWid-2
+
+if(intersections[-1][0][0]+fieldWid) in range(-5+img.shape[0],5+img.shape[0]): #fali desna ivica
+    for i in y:
+        intersections.append([[lastXrowdot,i]])
+        #intersections.append([[i, img.shape[0]-2]])
+
+if(intersections[0][0][0]-fieldWid) in range(-5,5): #fali leva ivica
+    for i in y:
+        #intersections.append([[i,2]])
+        intersections.append([[firstXrowdot,i]])
+
+
 
 intersections.sort()
+
 print(intersections.__len__())
 print(intersections)
 
