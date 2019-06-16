@@ -35,7 +35,7 @@ for line in lines:
     y1 = int(y0 + 1000*(a))
     x2 = int(x0 - 1000*(-b))
     y2 = int(y0 - 1000*(a))
-    cv2.line(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
+   # cv2.line(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
 
 #------------------pronalazenje preseka linija---------------------
@@ -124,24 +124,27 @@ if(intersections[0][0][0]-fieldWid) in range(-5,5): #fali leva ivica
         #intersections.append([[i,2]])
         intersections.append([[firstXrowdot,i]])
 
-intersections.sort()
+sortx=sorted(intersections)
+sorty=sorted(intersections, key=lambda coor:coor[0][1])
 
 polja=[]
-for i in range(0,64):
-    polja.append()
 
+for i in range (0,intersections.__len__()-1):
+    for j in range(0,intersections.__len__()-1):
+        if img[sorty[j][0][1]:sorty[j+1][0][1],sortx[i][0][0]:sortx[i+1][0][0]].size!=0:
+            polja.append(img[sorty[j][0][1]:sorty[j+1][0][1],sortx[i][0][0]:sortx[i+1][0][0]])
 
-
-
-
-
+for p in polja:
+    plt.figure()
+    plt.imshow(p)
 
 print(intersections.__len__())
 print(intersections)
 
 
-for i in intersections:
-    plt.scatter(i[0][0],i[0][1])
-
-plt.imshow(img)
+# for i in intersections:
+#     plt.scatter(i[0][0],i[0][1])
+#
+# plt.imshow(img)
 plt.show()
+
