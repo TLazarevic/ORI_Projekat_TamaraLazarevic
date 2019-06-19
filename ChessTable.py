@@ -20,7 +20,7 @@ gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 #--------pronalazenje linija na slici table----------------
 
 edges = cv2.Canny(gray,50,150,apertureSize = 3)
-lines = cv2.HoughLines(edges,1,np.pi/180,320)
+lines = cv2.HoughLines(edges,1,np.pi/180,310)
 
 
 lines=np.unique(lines,axis=0)
@@ -91,11 +91,11 @@ if firstYrowdot<0:
         firstYrowdot=firstYrowdot+1
 
 lastYrowdot=intersections[-1][0][1]+fieldLen
-if lastYrowdot>img.shape[1]:
-    while lastYrowdot>img.shape[1]:
+if lastYrowdot>img.shape[0]:
+    while lastYrowdot>img.shape[0]:
         lastYrowdot=lastYrowdot-1
 
-if(intersections[-1][0][1]+fieldLen) in range(-4+img.shape[1],4+img.shape[1]): #fali donja ivica
+if(intersections[-1][0][1]+fieldLen) in range(-4+img.shape[0],img.shape[0]): #fali donja ivica
     for i in x:
         intersections.append([[i,lastYrowdot]])
         #intersections.append([[i, img.shape[1]-2]])
@@ -122,11 +122,13 @@ if firstXrowdot<0:
         firstXrowdot=firstXrowdot+1
 
 lastXrowdot=intersections[-1][0][0]+fieldWid
-if lastXrowdot>img.shape[0]:
-    while lastXrowdot>img.shape[0]:
+if lastXrowdot>img.shape[1]:
+    while lastXrowdot>img.shape[1]:
         lastXrowdot=lastXrowdot-1
 
-if(intersections[-1][0][0]+fieldWid) in range(-4+img.shape[0],4+img.shape[0]): #fali desna ivica
+print(lastXrowdot,intersections[-1][0][0],intersections[-1][0][0]+fieldWid,img.shape[0])
+
+if(intersections[-1][0][0]+fieldWid) in range(-4+img.shape[1],img.shape[1]+1): #fali desna ivica
     for i in y:
         intersections.append([[lastXrowdot,i]])
         #intersections.append([[i, img.shape[0]-2]])
