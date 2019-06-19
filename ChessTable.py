@@ -46,7 +46,6 @@ horlines=lines[np.where(lines[:,:,1]==0)]
 
 def intersection(line1, line2):
     """Finds the intersection of two lines given in Hesse normal form.
-
     Returns closest integer pixel locations."""
 
     rho1=line1[0]
@@ -86,16 +85,22 @@ for i in intersections:
     x.append(i[0][0])
 x=np.unique(x)
 
-firstYrowdot=intersections[0][0][1]-fieldLen+2 #adding this as Y coord to top row instead of zero to make space to make algorithm more flexible
-lastYrowdot=intersections[-1][0][1]+fieldLen-2
+firstYrowdot=intersections[0][0][1]-fieldLen #adding this as Y coord to top row instead of zero to make space to make algorithm more flexible
+if firstYrowdot<0:
+    while firstYrowdot<0:
+        firstYrowdot=firstYrowdot+1
 
+lastYrowdot=intersections[-1][0][1]+fieldLen
+if lastYrowdot>img.shape[1]:
+    while lastYrowdot>img.shape[1]:
+        lastYrowdot=lastYrowdot-1
 
-if(intersections[-1][0][1]+fieldLen) in range(-5+img.shape[1],5+img.shape[1]): #fali donja ivica
+if(intersections[-1][0][1]+fieldLen) in range(-4+img.shape[1],4+img.shape[1]): #fali donja ivica
     for i in x:
         intersections.append([[i,lastYrowdot]])
         #intersections.append([[i, img.shape[1]-2]])
 
-if(intersections[0][0][1]-fieldLen) in range(-5,5): #fali gornja ivica
+if(intersections[0][0][1]-fieldLen) in range(-4,4): #fali gornja ivica
     for i in x:
         #intersections.append([[i,2]])
         intersections.append([[i,firstYrowdot]])
@@ -111,18 +116,26 @@ for i in intersections:
     y.append(i[0][1])
 y=np.unique(y)
 
-firstXrowdot=intersections[0][0][0]-fieldWid+2 #adding this as X coord to top row instead of zero to make space to make algorithm more flexible
-lastXrowdot=intersections[-1][0][0]+fieldWid-2
+firstXrowdot=intersections[0][0][0]-fieldWid #adding this as X coord to top row instead of zero to make space to make algorithm more flexible
+if firstXrowdot<0:
+    while firstXrowdot<0:
+        firstXrowdot=firstXrowdot+1
 
-if(intersections[-1][0][0]+fieldWid) in range(-5+img.shape[0],5+img.shape[0]): #fali desna ivica
+lastXrowdot=intersections[-1][0][0]+fieldWid
+if lastXrowdot>img.shape[0]:
+    while lastXrowdot>img.shape[0]:
+        lastXrowdot=lastXrowdot-1
+
+if(intersections[-1][0][0]+fieldWid) in range(-4+img.shape[0],4+img.shape[0]): #fali desna ivica
     for i in y:
         intersections.append([[lastXrowdot,i]])
         #intersections.append([[i, img.shape[0]-2]])
 
-if(intersections[0][0][0]-fieldWid) in range(-5,5): #fali leva ivica
+if(intersections[0][0][0]-fieldWid) in range(-4,4): #fali leva ivica
     for i in y:
         #intersections.append([[i,2]])
         intersections.append([[firstXrowdot,i]])
+
 
 sortx=sorted(intersections)
 sorty=sorted(intersections, key=lambda coor:coor[0][1])
@@ -132,19 +145,19 @@ polja=[]
 for i in range (0,intersections.__len__()-1):
     for j in range(0,intersections.__len__()-1):
         if img[sorty[j][0][1]:sorty[j+1][0][1],sortx[i][0][0]:sortx[i+1][0][0]].size!=0:
-            polja.append(img[sorty[j][0][1]:sorty[j+1][0][1],sortx[i][0][0]:sortx[i+1][0][0]])
+            if ((sorty[j+1][0][1]-sorty[j][0][1]) - (sortx[i+1][0][0]-sortx[i][0][0])) in range (-10,10): #square check
+                polja.append(img[sorty[j][0][1]:sorty[j+1][0][1],sortx[i][0][0]:sortx[i+1][0][0]])
 
-for p in polja:
-    plt.figure()
-    plt.imshow(p)
+# for p in polja:
+#     plt.figure()
+#     plt.imshow(p)
 
 print(intersections.__len__())
 print(intersections)
 
 
-# for i in intersections:
-#     plt.scatter(i[0][0],i[0][1])
-#
-# plt.imshow(img)
-plt.show()
+for i in intersections:
+    plt.scatter(i[0][0],i[0][1])
 
+plt.imshow(img)
+plt.show()
