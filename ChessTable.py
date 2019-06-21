@@ -3,10 +3,11 @@ from collections import Counter
 from dataclasses import field
 
 import numpy as np
-import cv2 # OpenCV biblioteka
+import opencv as cv2 # OpenCV biblioteka
 import matplotlib
 import matplotlib.pyplot as plt
 import imutils
+import NeuralNet
 
 from tkinter import filedialog
 
@@ -178,7 +179,7 @@ for p in range(temp-1,-1,-1):
     if not(polja[p].size in range (velicina-2000,velicina+2000)):
         polja.pop(p)
     else:
-        polja[p]= polja[p].resize((20, 20), Image.ANTIALIAS)    # best down-sizing filter
+        polja[p] = cv2.resize(polja[p], dsize=(20, 20), interpolation=cv2.INTER_CUBIC)
         polja[p] = cv2.cvtColor(polja[p], cv2.COLOR_BGR2GRAY)
     plt.figure()
     plt.imshow(polja[p])
@@ -193,3 +194,5 @@ for i in intersections:
 print(img)
 plt.imshow(img)
 plt.show()
+
+nn=NeuralNet()

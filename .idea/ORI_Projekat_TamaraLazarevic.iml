@@ -3,9 +3,10 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/venv3" />
+      <excludeFolder url="file://$MODULE_DIR$/venv4" />
       <excludeFolder url="file://$MODULE_DIR$/venv5" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.7 (ORI_Projekat_TamaraLazarevic)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.7 (ORI_Projekat_TamaraLazarevic) (3)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="TestRunnerService">
