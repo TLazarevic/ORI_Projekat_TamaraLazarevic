@@ -1,4 +1,5 @@
 import sys
+from collections import Counter
 from dataclasses import field
 
 import numpy as np
@@ -10,6 +11,7 @@ import imutils
 from tkinter import filedialog
 
 #--------------otvaranje slike-----------------
+from PIL import Image
 
 file_path = filedialog.askopenfilename()
 
@@ -20,7 +22,7 @@ gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 #--------pronalazenje linija na slici table----------------
 
 edges = cv2.Canny(gray,50,150,apertureSize = 3)
-lines = cv2.HoughLines(edges,1,np.pi/180,310)
+lines = cv2.HoughLines(edges,1,np.pi/180,330)
 
 
 lines=np.unique(lines,axis=0)
@@ -78,7 +80,22 @@ for i in range((icopy.__len__()-1),-1,-1):
 
 #------------------dodavanje nedetektovanih ivica slike----------------
 
-fieldLen=intersections[1][0][1]-intersections[0][0][1]
+distancesW=[]
+distancesL=[]
+
+for i in range(0,intersections.__len__()-1):
+    distancesL.append(intersections[i+1][0][1]-intersections[i][0][1])
+    distancesW.append(intersections[i+1][0][0]-intersections[i][0][0])
+
+if ((Counter(distancesL).most_common(1)[0][0])!=0):
+    fieldLen=Counter(distancesL).most_common(1)[0][0]
+else:
+    fieldLen = Counter(distancesL).most_common(2)[1][0]
+
+if ((Counter(distancesW).most_common(1)[0][0])!=0):
+    fieldWid=Counter(distancesW).most_common(1)[0][0]
+else:
+    fieldWid = Counter(distancesW).most_common(2)[1][0]
 
 x=[]
 for i in intersections:
@@ -91,11 +108,13 @@ if firstYrowdot<0:
         firstYrowdot=firstYrowdot+1
 
 lastYrowdot=intersections[-1][0][1]+fieldLen
+
 if lastYrowdot>img.shape[0]:
     while lastYrowdot>img.shape[0]:
         lastYrowdot=lastYrowdot-1
 
-if(intersections[-1][0][1]+fieldLen) in range(-4+img.shape[0],img.shape[0]): #fali donja ivica
+
+if(intersections[-1][0][1]+fieldLen) in range(-4+img.shape[0],img.shape[0]+4): #fali donja ivica
     for i in x:
         intersections.append([[i,lastYrowdot]])
         #intersections.append([[i, img.shape[1]-2]])
@@ -109,7 +128,6 @@ if(intersections[0][0][1]-fieldLen) in range(-4,4): #fali gornja ivica
 intersections=sorted(intersections, key=lambda coor:coor[0][1])
 
 
-fieldWid=intersections[1][0][0]-intersections[0][0][0]
 
 y=[]
 for i in intersections:
@@ -128,7 +146,7 @@ if lastXrowdot>img.shape[1]:
 
 print(lastXrowdot,intersections[-1][0][0],intersections[-1][0][0]+fieldWid,img.shape[0])
 
-if(intersections[-1][0][0]+fieldWid) in range(-4+img.shape[1],img.shape[1]+1): #fali desna ivica
+if(intersections[-1][0][0]+fieldWid) in range(-4+img.shape[1],img.shape[1]+4): #fali desna ivica
     for i in y:
         intersections.append([[lastXrowdot,i]])
         #intersections.append([[i, img.shape[0]-2]])
@@ -143,23 +161,35 @@ sortx=sorted(intersections)
 sorty=sorted(intersections, key=lambda coor:coor[0][1])
 
 polja=[]
+velicinepolja=[]
 
 for i in range (0,intersections.__len__()-1):
     for j in range(0,intersections.__len__()-1):
         if img[sorty[j][0][1]:sorty[j+1][0][1],sortx[i][0][0]:sortx[i+1][0][0]].size!=0:
             if ((sorty[j+1][0][1]-sorty[j][0][1]) - (sortx[i+1][0][0]-sortx[i][0][0])) in range (-10,10): #square check
                 polja.append(img[sorty[j][0][1]:sorty[j+1][0][1],sortx[i][0][0]:sortx[i+1][0][0]])
+                velicinepolja.append(polja[-1].size)
 
-# for p in polja:
-#     plt.figure()
-#     plt.imshow(p)
+velicina=Counter(velicinepolja).most_common(1)[0][0]
 
-print(intersections.__len__())
-print(intersections)
+temp=polja.__len__()
+
+for p in range(temp-1,-1,-1):
+    if not(polja[p].size in range (velicina-2000,velicina+2000)):
+        polja.pop(p)
+    else:
+        polja[p]= polja[p].resize((20, 20), Image.ANTIALIAS)    # best down-sizing filter
+        polja[p] = cv2.cvtColor(polja[p], cv2.COLOR_BGR2GRAY)
+    plt.figure()
+    plt.imshow(polja[p])
+
+print(polja.__len__())
+# print(intersections)
 
 
 for i in intersections:
     plt.scatter(i[0][0],i[0][1])
 
+print(img)
 plt.imshow(img)
 plt.show()
