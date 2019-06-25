@@ -22,7 +22,7 @@ gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 # --------pronalazenje linija na slici table----------------
 
 edges = cv2.Canny(gray, 50, 150, apertureSize=3)
-lines = cv2.HoughLines(edges, 1, np.pi / 180, 290)
+lines = cv2.HoughLines(edges, 1, np.pi / 180, 280)
 
 lines = np.unique(lines, axis=0)
 
@@ -76,17 +76,33 @@ for line1 in vertlines:
 # print("intersections: ",intersections)
 #
 #
-# icopy = intersections;
-#
-# # for i in range((icopy.__len__() - 1), -1, -1):
-# #     if ((intersections[i][0][1] - intersections[i - 1][0][1]) < 3):
-# #         intersections.remove(intersections[i])
-#
-# print("intersections: ",intersections.__len__())
-# print("intersections: ",intersections)
+icopy = intersections;
+
+print("intersections: ",intersections.__len__())
+print("intersections: ",intersections)
+
+for i in range((icopy.__len__() - 1), 0, -1):
+    if ((intersections[i][0][0] - intersections[i - 1][0][0]) < 5) and (intersections[i][0][1] in range (intersections[i - 1][0][1]-5,intersections[i - 1][0][1]+5)) :
+        intersections.remove(intersections[i])
+
+print("intersections: ",intersections.__len__())
+print("intersections: ",intersections)
+
+intersections=sorted(intersections, key=lambda coor: coor[0][0])
+print("intersections: ",intersections.__len__())
+print("intersections: ",intersections)
+
+for i in range((icopy.__len__() - 1), 0, -1):
+    if ((intersections[i][0][1] - intersections[i - 1][0][1]) < 5) and (intersections[i][0][0] in range(intersections[i - 1][0][0]-5,intersections[i - 1][0][0]+5)):
+        intersections.remove(intersections[i])
+
+print("intersections: ",intersections.__len__())
+print("intersections: ",intersections)
+
 
 # ------------------dodavanje nedetektovanih ivica slike----------------
 
+intersections.sort()
 distancesW = []
 distancesL = []
 
@@ -109,11 +125,11 @@ for i in intersections:
     x.append(i[0][0])
 x = np.unique(x)
 
-firstYrowdot = intersections[0][0][
-                   1] - fieldLen  # adding this as Y coord to top row instead of zero to make space to make algorithm more flexible
+firstYrowdot = intersections[0][0][1] - fieldLen  # adding this as Y coord to top row instead of zero to make space to make algorithm more flexible
 if firstYrowdot < 0:
     while firstYrowdot < 0:
         firstYrowdot = firstYrowdot + 1
+
 
 lastYrowdot = intersections[-1][0][1] + fieldLen
 
