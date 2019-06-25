@@ -184,9 +184,10 @@ for p in range(temp - 1, -1, -1):
 print(polja.__len__())
 # print(intersections)
 
-
+plt.figure()
 for i in intersections:
     plt.scatter(i[0][0], i[0][1])
+
 
 plt.imshow(img)
 plt.show()
