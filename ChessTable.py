@@ -22,7 +22,7 @@ gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 # --------pronalazenje linija na slici table----------------
 
 edges = cv2.Canny(gray, 50, 150, apertureSize=3)
-lines = cv2.HoughLines(edges, 1, np.pi / 180, 330)
+lines = cv2.HoughLines(edges, 1, np.pi / 180, 290)
 
 lines = np.unique(lines, axis=0)
 
@@ -68,15 +68,22 @@ for line1 in vertlines:
     for line2 in horlines:
         intersections.append(intersection(line1, line2))
 
+
 # ---------------brisanje duplih preseka-----------
-
-intersections.sort()
-
-icopy = intersections;
-
-for i in range((icopy.__len__() - 1), -1, -1):
-    if ((intersections[i][0][1] - intersections[i - 1][0][1]) < 2.5):
-        intersections.remove(intersections[i])
+#
+# intersections=sorted(intersections, key=lambda coor: coor[0][0])
+# print("intersections: ",intersections.__len__())
+# print("intersections: ",intersections)
+#
+#
+# icopy = intersections;
+#
+# # for i in range((icopy.__len__() - 1), -1, -1):
+# #     if ((intersections[i][0][1] - intersections[i - 1][0][1]) < 3):
+# #         intersections.remove(intersections[i])
+#
+# print("intersections: ",intersections.__len__())
+# print("intersections: ",intersections)
 
 # ------------------dodavanje nedetektovanih ivica slike----------------
 
@@ -154,6 +161,8 @@ if (intersections[0][0][0] - fieldWid) in range(-4, 4):  # fali leva ivica
         # intersections.append([[i,2]])
         intersections.append([[firstXrowdot, i]])
 
+#----------------------pronalazenje i filtriranje polja------------------------
+
 sortx = sorted(intersections)
 sorty = sorted(intersections, key=lambda coor: coor[0][1])
 
@@ -163,23 +172,30 @@ velicinepolja = []
 for i in range(0, intersections.__len__() - 1):
     for j in range(0, intersections.__len__() - 1):
         if img[sorty[j][0][1]:sorty[j + 1][0][1], sortx[i][0][0]:sortx[i + 1][0][0]].size != 0:
-            if ((sorty[j + 1][0][1] - sorty[j][0][1]) - (sortx[i + 1][0][0] - sortx[i][0][0])) in range(-10,
-                                                                                                        10):  # square check
+            print((sorty[j + 1][0][1] - sorty[j][0][1]) - (sortx[i + 1][0][0] - sortx[i][0][0]))
+            if ((sorty[j + 1][0][1] - sorty[j][0][1]) - (sortx[i + 1][0][0] - sortx[i][0][0])) in range(-20,20):  # square check
                 polja.append(img[sorty[j][0][1]:sorty[j + 1][0][1], sortx[i][0][0]:sortx[i + 1][0][0]])
                 velicinepolja.append(polja[-1].size)
 
 velicina = Counter(velicinepolja).most_common(1)[0][0]
 
 temp = polja.__len__()
+print(polja.__len__())
 
-for p in range(temp - 1, -1, -1):
-    if not (polja[p].size in range(velicina - 2000, velicina + 2000)):
+for p in range(temp - 1, 0, -1):
+    if not (polja[p].size in range(velicina - 7000, velicina + 7000)):
         polja.pop(p)
     else:
+        print(polja[p].size,velicina)
         polja[p] = cv2.resize(polja[p], dsize=(30, 30), interpolation=cv2.INTER_CUBIC)
         polja[p] = cv2.cvtColor(polja[p], cv2.COLOR_BGR2GRAY)
+
+
+#------------------------plots---------------------------------
+
+for p in polja:
     plt.figure()
-    plt.imshow(polja[p])
+    plt.imshow(p)
 
 print(polja.__len__())
 # print(intersections)
