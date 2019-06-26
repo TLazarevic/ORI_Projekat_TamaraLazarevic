@@ -11,7 +11,7 @@ from PIL import Image
 
 from tkinter import filedialog
 
-# --------------otvaranje slike-----------------
+# ------------------------------otvaranje slike--------------------
 
 file_path = filedialog.askopenfilename()
 
@@ -198,7 +198,7 @@ velicina = Counter(velicinepolja).most_common(1)[0][0]
 temp = polja.__len__()
 print(polja.__len__())
 
-for p in range(temp - 1, 0, -1):
+for p in range(temp - 1, -1, -1):
     if not (polja[p].size in range(velicina - 7000, velicina + 7000)):
         polja.pop(p)
     else:
@@ -208,10 +208,12 @@ for p in range(temp - 1, 0, -1):
 
 
 #------------------------plots---------------------------------
-
+br=0
 for p in polja:
     plt.figure()
     plt.imshow(p)
+    plt.savefig('C:/Users/DELL/Documents/Tamara faks/ORI/trening_skup/'+str(br)+'.png')
+    br=br+1
 
 print(polja.__len__())
 # print(intersections)

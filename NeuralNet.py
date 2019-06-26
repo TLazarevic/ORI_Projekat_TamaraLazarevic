@@ -10,6 +10,7 @@ from torch import nn, optim
 from torch.utils.data import DataLoader
 import numpy as np
 from torchvision import datasets, transforms, models
+import matplotlib.pyplot as plt
 
 # imgs = []
 # labels1: List[str]=[]
@@ -29,10 +30,10 @@ from torchvision import datasets, transforms, models
 data_dir = 'C:/Users/DELL/Documents/Tamara faks/ORI/trening_skup'
 
 def load_split_train_test(datadir, valid_size = .2):            #organizacija trening/validacionog skupa
-    train_transforms = transforms.Compose([transforms.Resize(15),
+    train_transforms = transforms.Compose([transforms.Resize([30,30]),
                                        transforms.ToTensor(),
                                        ])
-    test_transforms = transforms.Compose([transforms.Resize(15),
+    test_transforms = transforms.Compose([transforms.Resize([30,30]),
                                       transforms.ToTensor(),
                                       ])
     train_data = datasets.ImageFolder(datadir,
@@ -48,9 +49,9 @@ def load_split_train_test(datadir, valid_size = .2):            #organizacija tr
     train_sampler = SubsetRandomSampler(train_idx)
     test_sampler = SubsetRandomSampler(test_idx)
     trainloader = torch.utils.data.DataLoader(train_data,
-                   sampler=train_sampler, batch_size=2)
+                   sampler=train_sampler, batch_size=8)
     testloader = torch.utils.data.DataLoader(test_data,
-                   sampler=test_sampler, batch_size=2)
+                   sampler=test_sampler, batch_size=8)
     return trainloader, testloader
 trainloader, testloader = load_split_train_test(data_dir, .2)
 print(trainloader.dataset.classes)
@@ -59,8 +60,8 @@ device = torch.device("cuda" if torch.cuda.is_available()
 
 
 
-input_size = 900 #30x30  za svaku sliku
-hidden_sizes = [128, 64]
+input_size = 2700 #30x30  za svaku sliku
+hidden_sizes = [900, 300]
 output_size = 13 #6 figura svake boje+prazno polje
 
 criterion = nn.NLLLoss()
@@ -70,7 +71,7 @@ model = nn.Sequential(nn.Linear(input_size, hidden_sizes[0]),
                       nn.Linear(hidden_sizes[0], hidden_sizes[1]),
                       nn.ReLU(),
                       nn.Linear(hidden_sizes[1], output_size),
-                      nn.LogSoftmax(dim=1))                         #multiklasifikacioni problem-logsoftmax -> zbir verovatnoca je 1,visa vrednost=veca vrvtnoca
+                      nn.LogSoftmax(dim=1))            #multiklasifikacioni problem-logsoftmax -> zbir verovatnoca je 1,visa vrednost=veca vrvtnoca
 print(model)
 
 optimizer = optim.SGD(model.parameters(), lr=0.003, momentum=0.9)
@@ -104,7 +105,7 @@ torch.save(model, './my_chess_model.pt')
 correct_count, all_count = 0, 0
 for images, labels in testloader:
     for i in range(len(labels)):
-        img = images[i].view(1, 900)
+        img = images[i].view(1, 2700)
         with torch.no_grad():
             logps = model(img)
 
