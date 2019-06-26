@@ -32,9 +32,12 @@ data_dir = 'C:/Users/DELL/Documents/Tamara faks/ORI/trening_skup'
 def load_split_train_test(datadir, valid_size = .2):            #organizacija trening/validacionog skupa
     train_transforms = transforms.Compose([transforms.Resize([30,30]),
                                        transforms.ToTensor(),
+                                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+
                                        ])
     test_transforms = transforms.Compose([transforms.Resize([30,30]),
-                                      transforms.ToTensor(),
+                                          transforms.ToTensor(),
+                                          transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                                       ])
     train_data = datasets.ImageFolder(datadir,
                     transform=train_transforms)
@@ -76,7 +79,7 @@ print(model)
 
 optimizer = optim.SGD(model.parameters(), lr=0.003, momentum=0.9)
 time0 = time()
-epochs = 30
+epochs = 15
 for e in range(epochs):
     running_loss = 0
     for images, labels in trainloader:
