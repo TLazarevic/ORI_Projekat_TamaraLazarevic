@@ -34,6 +34,7 @@ def load_split_train_test(datadir, valid_size = .2):            #organizacija tr
                                        transforms.ToTensor(),
                                            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
 
+
                                        ])
     test_transforms = transforms.Compose([transforms.Resize([30,30]),
                                           transforms.ToTensor(),
@@ -64,7 +65,7 @@ device = torch.device("cuda" if torch.cuda.is_available()
 
 
 input_size = 2700 #30x30  za svaku sliku
-hidden_sizes = [900, 300]
+hidden_sizes = [900, 100]
 output_size = 13 #6 figura svake boje+prazno polje
 
 criterion = nn.NLLLoss()
@@ -77,7 +78,7 @@ model = nn.Sequential(nn.Linear(input_size, hidden_sizes[0]),
                       nn.LogSoftmax(dim=1))            #multiklasifikacioni problem-logsoftmax -> zbir verovatnoca je 1,visa vrednost=veca vrvtnoca
 print(model)
 
-optimizer = optim.SGD(model.parameters(), lr=0.003, momentum=0.9)
+optimizer = optim.SGD(model.parameters(), lr=0.005, momentum=0.9)
 time0 = time()
 epochs = 15
 for e in range(epochs):
