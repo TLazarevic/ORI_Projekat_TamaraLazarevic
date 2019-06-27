@@ -31,14 +31,17 @@ data_dir = 'C:/Users/DELL/Documents/Tamara faks/ORI/trening_skup'
 
 def load_split_train_test(datadir, valid_size = .2):            #organizacija trening/validacionog skupa
     train_transforms = transforms.Compose([transforms.Resize([30,30]),
+                                          transforms.Grayscale(),
                                        transforms.ToTensor(),
-                                           transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                                           transforms.Normalize([0.5], [0.5])
 
 
                                        ])
     test_transforms = transforms.Compose([transforms.Resize([30,30]),
+                                          transforms.Grayscale(),
                                           transforms.ToTensor(),
-                                          transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                                          transforms.Normalize([0.5], [0.5]),
+
                                       ])
     train_data = datasets.ImageFolder(datadir,
                     transform=train_transforms)
@@ -64,8 +67,8 @@ device = torch.device("cuda" if torch.cuda.is_available()
 
 
 
-input_size = 2700 #30x30  za svaku sliku
-hidden_sizes = [900, 100]
+input_size = 900 #30x30  za svaku sliku
+hidden_sizes = [300, 100]
 output_size = 13 #6 figura svake boje+prazno polje
 
 criterion = nn.NLLLoss()
@@ -78,9 +81,9 @@ model = nn.Sequential(nn.Linear(input_size, hidden_sizes[0]),
                       nn.LogSoftmax(dim=1))            #multiklasifikacioni problem-logsoftmax -> zbir verovatnoca je 1,visa vrednost=veca vrvtnoca
 print(model)
 
-optimizer = optim.SGD(model.parameters(), lr=0.005, momentum=0.9)
+optimizer = optim.SGD(model.parameters(), lr=0.003, momentum=0.9)
 time0 = time()
-epochs = 15
+epochs = 30
 for e in range(epochs):
     running_loss = 0
     for images, labels in trainloader:
@@ -109,7 +112,7 @@ torch.save(model, './my_chess_model.pt')
 correct_count, all_count = 0, 0
 for images, labels in testloader:
     for i in range(len(labels)):
-        img = images[i].view(1, 2700)
+        img = images[i].view(1, 900)
         with torch.no_grad():
             logps = model(img)
 
@@ -117,6 +120,7 @@ for images, labels in testloader:
         probab = list(ps.numpy()[0])
         pred_label = probab.index(max(probab))
         true_label = labels.numpy()[i]
+        print(true_label,pred_label)
         if (true_label == pred_label):
             correct_count += 1
         all_count += 1
