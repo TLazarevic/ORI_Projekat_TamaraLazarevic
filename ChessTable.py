@@ -22,7 +22,7 @@ gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 # --------pronalazenje linija na slici table----------------
 
 edges = cv2.Canny(gray, 50, 150, apertureSize=3)
-lines = cv2.HoughLines(edges, 1, np.pi / 180, 280)
+lines = cv2.HoughLines(edges, 1, np.pi / 180, 230)
 
 lines = np.unique(lines, axis=0)
 
@@ -82,8 +82,8 @@ print("intersections: ",intersections.__len__())
 print("intersections: ",intersections)
 
 for i in range((icopy.__len__() - 1), 0, -1):
-    if ((intersections[i][0][0] - intersections[i - 1][0][0]) < 5) and (intersections[i][0][1] in range (intersections[i - 1][0][1]-5,intersections[i - 1][0][1]+5)) :
-        intersections.remove(intersections[i])
+    if ((intersections[i][0][0] - intersections[i - 1][0][0]) < 50) and (intersections[i][0][1] in range (intersections[i - 1][0][1]-5,intersections[i - 1][0][1]+5)) :
+        intersections.remove(intersections[i-1])
 
 print("intersections: ",intersections.__len__())
 print("intersections: ",intersections)
@@ -93,8 +93,8 @@ print("intersections: ",intersections.__len__())
 print("intersections: ",intersections)
 
 for i in range((icopy.__len__() - 1), 0, -1):
-    if ((intersections[i][0][1] - intersections[i - 1][0][1]) < 5) and (intersections[i][0][0] in range(intersections[i - 1][0][0]-5,intersections[i - 1][0][0]+5)):
-        intersections.remove(intersections[i])
+    if ((intersections[i][0][1] - intersections[i - 1][0][1]) < 50) and (intersections[i][0][0] in range(intersections[i - 1][0][0]-5,intersections[i - 1][0][0]+5)):
+        intersections.remove(intersections[i-1])
 
 print("intersections: ",intersections.__len__())
 print("intersections: ",intersections)
@@ -198,6 +198,8 @@ velicina = Counter(velicinepolja).most_common(1)[0][0]
 temp = polja.__len__()
 print(polja.__len__())
 
+
+
 for p in range(temp - 1, -1, -1):
     if not (polja[p].size in range(velicina - 7000, velicina + 7000)):
         polja.pop(p)
@@ -206,7 +208,7 @@ for p in range(temp - 1, -1, -1):
         polja[p] = cv2.resize(polja[p], dsize=(30, 30), interpolation=cv2.INTER_CUBIC)
         polja[p] = cv2.cvtColor(polja[p], cv2.COLOR_BGR2GRAY)
 
-
+print(polja.__len__())
 #------------------------plots---------------------------------
 br=0
 for p in polja:

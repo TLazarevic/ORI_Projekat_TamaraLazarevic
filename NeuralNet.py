@@ -92,7 +92,6 @@ def load_split_train_test(datadir, valid_size = .2):            #organizacija tr
 trainloader, testloader = load_split_train_test(data_dir, .2)
 
 
-print(trainloader.dataset.classes)
 device = torch.device("cuda" if torch.cuda.is_available()
                                   else "cpu")
 
