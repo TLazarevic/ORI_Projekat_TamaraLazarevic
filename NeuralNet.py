@@ -57,7 +57,12 @@ def load_split_train_test(datadir, valid_size = .2):            #organizacija tr
     train_transforms = transforms.Compose([transforms.Resize([30,30]),
                                           transforms.Grayscale(),
                                        transforms.ToTensor(),
-                                           transforms.Normalize([0.5], [0.5])
+                                           transforms.Normalize([0.5], [0.5]),
+
+                                           lambda x: x > 0,
+                                           lambda x: x.float(),
+                                           transforms.Normalize(mean=[ 0.5],
+                                                                std=[ 0.225])
 
 
                                        ])
@@ -65,6 +70,11 @@ def load_split_train_test(datadir, valid_size = .2):            #organizacija tr
                                           transforms.Grayscale(),
                                           transforms.ToTensor(),
                                           transforms.Normalize([0.5], [0.5]),
+
+                                          lambda x: x > 0,
+                                          lambda x: x.float(),
+                                          transforms.Normalize(mean=[ 0.5],
+                                                               std=[ 0.225])
 
                                       ])
     train_data = datasets.ImageFolder(datadir,
