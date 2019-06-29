@@ -7,11 +7,15 @@ import cv2  # OpenCV biblioteka
 import matplotlib
 import matplotlib.pyplot as plt
 from PIL import Image
+import torch
 
 
 from tkinter import filedialog
 
 # ------------------------------otvaranje slike--------------------
+from matplotlib import cm
+from torch.autograd import Variable
+from torchvision import transforms
 
 file_path = filedialog.askopenfilename()
 
@@ -212,9 +216,9 @@ print(polja.__len__())
 #------------------------plots---------------------------------
 br=0
 for p in polja:
-    plt.figure()
-    plt.imshow(p)
-    plt.savefig('C:/Users/DELL/Documents/Tamara faks/ORI/trening_skup/'+str(br)+'.png')
+   # plt.figure()
+    #plt.imshow(p)
+    #plt.savefig('C:/Users/DELL/Documents/Tamara faks/ORI/trening_skup/'+str(br)+'.png')
     br=br+1
 
 print(polja.__len__())
@@ -228,4 +232,33 @@ for i in intersections:
 plt.imshow(img)
 plt.show()
 
+#-----------------------predictions----------------------
+nn=torch.load("my_chess_model.pt")
+input_size = 900 #30x30  za svaku sliku
+hidden_sizes = [300, 100]
+output_size = 13 #6 figura svake boje+prazno polje
+
+# model = nn.Sequential(nn.Linear(input_size, hidden_sizes[0]),
+#                       nn.ReLU(),
+#                       nn.Linear(hidden_sizes[0], hidden_sizes[1]),
+#                       nn.ReLU(),
+#                       nn.Linear(hidden_sizes[1], output_size),
+#                       nn.LogSoftmax(dim=1))
+# model.load_state_dict(nn)
+trans=transforms.Compose([transforms.Resize([30,30]),
+                                          transforms.Grayscale(),
+                                       transforms.ToTensor(),
+                                           transforms.Normalize([0.5], [0.5]),
+
+                                           lambda x: x > 0,
+                                           lambda x: x.float(),
+                                           transforms.Normalize(mean=[ 0.5],
+                                                                std=[ 0.225])
+
+                                       ])
+for p in polja:
+    p=Image.fromarray(np.uint8(cm.gist_earth(p)*255))
+    p=trans(p)
+    p = p.view(p.shape[0], -1)
+    print((nn(p)))
 
