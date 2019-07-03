@@ -1,21 +1,18 @@
 import sys
 from collections import Counter
-from dataclasses import field
 
+import PIL
 import numpy as np
 import cv2  # OpenCV biblioteka
-import matplotlib
 import matplotlib.pyplot as plt
 from PIL import Image
 import torch
-
-
-from tkinter import filedialog
-
-# ------------------------------otvaranje slike--------------------
 from matplotlib import cm
 from torch.autograd import Variable
 from torchvision import transforms
+from tkinter import filedialog
+
+# ------------------------------otvaranje slike--------------------
 
 file_path = filedialog.askopenfilename()
 
@@ -23,7 +20,7 @@ img = cv2.imread(file_path)  # ucitavanje slike sa diska
 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # konvertovanje iz BGR u RGB model boja (OpenCV ucita sliku kao BGR)
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-# --------pronalazenje linija na slici table----------------
+# --------pronalazenje linija na slici table-------------------
 
 edges = cv2.Canny(gray, 50, 150, apertureSize=3)
 lines = cv2.HoughLines(edges, 1, np.pi / 180, 230)
@@ -74,20 +71,20 @@ for line1 in vertlines:
 
 
 # ---------------brisanje duplih preseka-----------
-#
-# intersections=sorted(intersections, key=lambda coor: coor[0][0])
-# print("intersections: ",intersections.__len__())
-# print("intersections: ",intersections)
-#
-#
+
+fieldWid=int(img.shape[1]/8) #sirina sahovske table odgovara sirini (i duzini) osam polja i na skrinsotu i na isecenoj slici
+fieldLen=int(img.shape[1]/8)
+
 icopy = intersections;
 
 print("intersections: ",intersections.__len__())
 print("intersections: ",intersections)
 
-for i in range((icopy.__len__() - 1), 0, -1):
-    if ((intersections[i][0][0] - intersections[i - 1][0][0]) < 50) and (intersections[i][0][1] in range (intersections[i - 1][0][1]-5,intersections[i - 1][0][1]+5)) :
+for i in range((icopy.__len__() - 1), 0, -1):  #brisanje preseka koji su blizi nego velicina polja
+    if ((intersections[i][0][0] - intersections[i - 1][0][0]) < fieldWid/2 +5) and (intersections[i][0][1] in range (intersections[i - 1][0][1]-5,intersections[i - 1][0][1]+5)) :
         intersections.remove(intersections[i-1])
+
+icopy = intersections;
 
 print("intersections: ",intersections.__len__())
 print("intersections: ",intersections)
@@ -96,9 +93,18 @@ intersections=sorted(intersections, key=lambda coor: coor[0][0])
 print("intersections: ",intersections.__len__())
 print("intersections: ",intersections)
 
-for i in range((icopy.__len__() - 1), 0, -1):
-    if ((intersections[i][0][1] - intersections[i - 1][0][1]) < 50) and (intersections[i][0][0] in range(intersections[i - 1][0][0]-5,intersections[i - 1][0][0]+5)):
+for i in range((icopy.__len__() - 1), 0, -1): #brisanje preseka koji su blizi nego velicina polja
+    if ((intersections[i][0][1] - intersections[i - 1][0][1]) < fieldLen/2 +5) and (intersections[i][0][0] in range(intersections[i - 1][0][0]-5,intersections[i - 1][0][0]+5)):
         intersections.remove(intersections[i-1])
+
+icopy = intersections;
+
+for i in range((icopy.__len__() - 1), 1, -1): #brisanje preseka koji su predaleko (pogresno detektovani preseci ostatka skrinsota)
+    if ((intersections[i][0][1] - intersections[i - 1][0][1]) > fieldLen +10) and (intersections[i][0][0] in range(intersections[i - 1][0][0]-5,intersections[i - 1][0][0]+5)):
+        if(intersections[i][0][1]>img.shape[0]/2):
+            intersections.remove(intersections[i])
+        else:
+            intersections.remove(intersections[i-1])
 
 print("intersections: ",intersections.__len__())
 print("intersections: ",intersections)
@@ -106,23 +112,7 @@ print("intersections: ",intersections)
 
 # ------------------dodavanje nedetektovanih ivica slike----------------
 
-intersections.sort()
-distancesW = []
-distancesL = []
-
-for i in range(0, intersections.__len__() - 1):
-    distancesL.append(intersections[i + 1][0][1] - intersections[i][0][1])
-    distancesW.append(intersections[i + 1][0][0] - intersections[i][0][0])
-
-if ((Counter(distancesL).most_common(1)[0][0]) != 0):
-    fieldLen = Counter(distancesL).most_common(1)[0][0]
-else:
-    fieldLen = Counter(distancesL).most_common(2)[1][0]
-
-if ((Counter(distancesW).most_common(1)[0][0]) != 0):
-    fieldWid = Counter(distancesW).most_common(1)[0][0]
-else:
-    fieldWid = Counter(distancesW).most_common(2)[1][0]
+# intersections.sort()
 
 x = []
 for i in intersections:
@@ -169,8 +159,6 @@ if lastXrowdot > img.shape[1]:
     while lastXrowdot > img.shape[1]:
         lastXrowdot = lastXrowdot - 1
 
-print(lastXrowdot, intersections[-1][0][0], intersections[-1][0][0] + fieldWid, img.shape[0])
-
 if (intersections[-1][0][0] + fieldWid) in range(-4 + img.shape[1], img.shape[1] + 4):  # fali desna ivica
     for i in y:
         intersections.append([[lastXrowdot, i]])
@@ -192,12 +180,13 @@ velicinepolja = []
 for i in range(0, intersections.__len__() - 1):
     for j in range(0, intersections.__len__() - 1):
         if img[sorty[j][0][1]:sorty[j + 1][0][1], sortx[i][0][0]:sortx[i + 1][0][0]].size != 0:
-            print((sorty[j + 1][0][1] - sorty[j][0][1]) - (sortx[i + 1][0][0] - sortx[i][0][0]))
+           # print((sorty[j + 1][0][1] - sorty[j][0][1]) - (sortx[i + 1][0][0] - sortx[i][0][0]))
             if ((sorty[j + 1][0][1] - sorty[j][0][1]) - (sortx[i + 1][0][0] - sortx[i][0][0])) in range(-20,20):  # square check
                 polja.append(img[sorty[j][0][1]:sorty[j + 1][0][1], sortx[i][0][0]:sortx[i + 1][0][0]])
                 velicinepolja.append(polja[-1].size)
 
-velicina = Counter(velicinepolja).most_common(1)[0][0]
+velicina = fieldLen*fieldWid
+print(velicina)
 
 temp = polja.__len__()
 print(polja.__len__())
@@ -205,10 +194,9 @@ print(polja.__len__())
 
 
 for p in range(temp - 1, -1, -1):
-    if not (polja[p].size in range(velicina - 7000, velicina + 7000)):
+    if not (polja[p].shape[0]*polja[p].shape[1] in range(velicina - 7000, velicina + 7000)):
         polja.pop(p)
     else:
-        print(polja[p].size,velicina)
         polja[p] = cv2.resize(polja[p], dsize=(30, 30), interpolation=cv2.INTER_CUBIC)
         polja[p] = cv2.cvtColor(polja[p], cv2.COLOR_BGR2GRAY)
 
@@ -229,8 +217,6 @@ for i in intersections:
     plt.scatter(i[0][0], i[0][1])
 
 
-plt.imshow(img)
-plt.show()
 
 #-----------------------predictions----------------------
 nn=torch.load("my_chess_model.pt")
@@ -238,13 +224,6 @@ input_size = 900 #30x30  za svaku sliku
 hidden_sizes = [300, 100]
 output_size = 13 #6 figura svake boje+prazno polje
 
-# model = nn.Sequential(nn.Linear(input_size, hidden_sizes[0]),
-#                       nn.ReLU(),
-#                       nn.Linear(hidden_sizes[0], hidden_sizes[1]),
-#                       nn.ReLU(),
-#                       nn.Linear(hidden_sizes[1], output_size),
-#                       nn.LogSoftmax(dim=1))
-# model.load_state_dict(nn)
 trans=transforms.Compose([transforms.Resize([30,30]),
                                           transforms.Grayscale(),
                                        transforms.ToTensor(),
@@ -257,8 +236,12 @@ trans=transforms.Compose([transforms.Resize([30,30]),
 
                                        ])
 for p in polja:
-    p=Image.fromarray(np.uint8(cm.gist_earth(p)*255))
+    p= PIL.Image.fromarray(p)
     p=trans(p)
     p = p.view(p.shape[0], -1)
-    print((nn(p)))
+    print( torch.exp(nn(p)))
+    print(list(ps.numpy()[0]))
 
+
+plt.imshow(img)
+plt.show()

@@ -29,10 +29,6 @@ import matplotlib.pyplot as plt
 
 #--------------BALANSIRANJE DATA SETA------------------
 data_dir = 'C:/Users/DELL/Documents/Tamara faks/ORI/trening_skup'
-class_counts=[]
-for _, dirs, _ in os.walk(data_dir, topdown=True):
-    for f in dirs:
-        class_counts.append(os.listdir(data_dir+'/'+f).__len__())
 
 def make_weights_for_balanced_classes(images, nclasses):
     count = [0] * nclasses
@@ -48,9 +44,6 @@ def make_weights_for_balanced_classes(images, nclasses):
     return weight
 
 
-for  _, dirs, _ in os.walk(data_dir, topdown=True):
-    for f in dirs:
-        class_counts.append(os.listdir(data_dir+'/'+f).__len__())
 
 
 def load_split_train_test(datadir, valid_size = .2):            #organizacija trening/validacionog skupa
