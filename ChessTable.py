@@ -82,7 +82,7 @@ print("intersections: ",intersections)
 
 for i in range((icopy.__len__() - 1), 0, -1):  #brisanje preseka koji su blizi nego velicina polja
     if ((intersections[i][0][0] - intersections[i - 1][0][0]) < fieldWid/2 +5) and (intersections[i][0][1] in range (intersections[i - 1][0][1]-5,intersections[i - 1][0][1]+5)) :
-        intersections.remove(intersections[i-1])
+        intersections.remove(intersections[i])
 
 icopy = intersections;
 
@@ -234,13 +234,38 @@ trans=transforms.Compose([transforms.Resize([30,30]),
                                            transforms.Normalize(mean=[ 0.5],
                                                                 std=[ 0.225])
 
-                                       ])
+                                     ])
+switcher = {
+        0: "bela kraljica",
+        1: "beli konj",
+        2: "beli kralj",
+        3: "beli lovac",
+        4: "beli pijun",
+        5: "beli top",
+        6: "crna kraljica",
+        7: "crni konj",
+        8: "crni kralj",
+        9: "crni lovac",
+        10: "crni pijun",
+        11: "crni top",
+        12: "prazno"
+    }
+def switch(argument):
+    return  switcher[argument]
+
 for p in polja:
     p= PIL.Image.fromarray(p)
     p=trans(p)
     p = p.view(p.shape[0], -1)
-    print( torch.exp(nn(p)))
-    print(list(ps.numpy()[0]))
+    with torch.no_grad():
+        tensorpred=nn(p)
+    tensorpre=torch.exp(tensorpred)
+    pred=list(tensorpre.numpy()[0])
+    pre=pred.index(max(pred))
+    print("prediction")
+    maxpred=(pred.index(max(pred)))
+
+    print(maxpred,switch(maxpred))
 
 
 plt.imshow(img)
