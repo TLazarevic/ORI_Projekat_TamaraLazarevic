@@ -119,6 +119,7 @@ time0 = time()
 epochs = 30
 for e in range(epochs):
     running_loss = 0
+    test_loss=0
     for images, labels in trainloader:
         # Flatten images into a 900 long vector
         images = images.view(images.shape[0], -1)
@@ -128,6 +129,7 @@ for e in range(epochs):
 
         output = model(images)
         loss = criterion(output, labels)
+
 
         # This is where the model learns by backpropagating
         loss.backward()

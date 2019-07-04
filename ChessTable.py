@@ -93,14 +93,14 @@ intersections=sorted(intersections, key=lambda coor: coor[0][0])
 print("intersections: ",intersections.__len__())
 print("intersections: ",intersections)
 
-for i in range((icopy.__len__() - 1), 0, -1): #brisanje preseka koji su blizi nego velicina polja
+for i in range((icopy.__len__() - 1), -1, -1): #brisanje preseka koji su blizi nego velicina polja
     if ((intersections[i][0][1] - intersections[i - 1][0][1]) < fieldLen/2 +5) and (intersections[i][0][0] in range(intersections[i - 1][0][0]-5,intersections[i - 1][0][0]+5)):
         intersections.remove(intersections[i-1])
 
 icopy = intersections;
 
-for i in range((icopy.__len__() - 1), 1, -1): #brisanje preseka koji su predaleko (pogresno detektovani preseci ostatka skrinsota)
-    if ((intersections[i][0][1] - intersections[i - 1][0][1]) > fieldLen +10) and (intersections[i][0][0] in range(intersections[i - 1][0][0]-5,intersections[i - 1][0][0]+5)):
+for i in range((icopy.__len__() - 1), -1, -1): #brisanje preseka koji su predaleko (pogresno detektovani preseci ostatka skrinsota)
+    if ((intersections[i][0][1] - intersections[i - 1][0][1]) > fieldLen +15) and (intersections[i][0][0] in range(intersections[i - 1][0][0]-5,intersections[i - 1][0][0]+5)):
         if(intersections[i][0][1]>img.shape[0]/2):
             intersections.remove(intersections[i])
         else:
@@ -204,9 +204,9 @@ print(polja.__len__())
 #------------------------plots---------------------------------
 br=0
 for p in polja:
-   # plt.figure()
-    #plt.imshow(p)
-    #plt.savefig('C:/Users/DELL/Documents/Tamara faks/ORI/trening_skup/'+str(br)+'.png')
+    plt.figure()
+    plt.imshow(p)
+    plt.savefig('C:/Users/DELL/Documents/Tamara faks/ORI/trening_skup/'+str(br)+'.png')
     br=br+1
 
 print(polja.__len__())
