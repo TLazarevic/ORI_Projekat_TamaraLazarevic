@@ -191,8 +191,6 @@ print(velicina)
 temp = polja.__len__()
 print(polja.__len__())
 
-
-
 for p in range(temp - 1, -1, -1):
     if not (polja[p].shape[0]*polja[p].shape[1] in range(velicina - 7000, velicina + 7000)):
         polja.pop(p)
@@ -202,12 +200,12 @@ for p in range(temp - 1, -1, -1):
 
 print(polja.__len__())
 #------------------------plots---------------------------------
-br=0
-for p in polja:
-    plt.figure()
-    plt.imshow(p)
-    plt.savefig('C:/Users/DELL/Documents/Tamara faks/ORI/trening_skup/'+str(br)+'.png')
-    br=br+1
+# br=0
+# for p in polja:
+#     plt.figure()
+#     plt.imshow(p)
+#     plt.savefig('C:/Users/DELL/Documents/Tamara faks/ORI/trening_skup/'+str(br)+'.png')
+#     br=br+1
 
 print(polja.__len__())
 # print(intersections)

@@ -29,6 +29,7 @@ import matplotlib.pyplot as plt
 
 #--------------BALANSIRANJE DATA SETA------------------
 data_dir = 'C:/Users/DELL/Documents/Tamara faks/ORI/trening_skup'
+data_dir2 = 'C:/Users/DELL/Documents/Tamara faks/ORI/test_skup'
 
 def make_weights_for_balanced_classes(images, nclasses):
     count = [0] * nclasses
@@ -82,14 +83,17 @@ def load_split_train_test(datadir, valid_size = .2):            #organizacija tr
     weights = make_weights_for_balanced_classes(train_data.imgs, len(train_data.classes))
     weights = torch.DoubleTensor(weights)
 
+    weights2=make_weights_for_balanced_classes(test_data.imgs, len(test_data.classes))
+    weights2=torch.DoubleTensor(weights2)
+
     from torch.utils.data.sampler import SubsetRandomSampler
     train_idx, test_idx = indices[split:], indices[:split]
     train_sampler = WeightedRandomSampler(weights, len(weights))
-    test_sampler = SubsetRandomSampler(test_idx)
+    test_sampler = WeightedRandomSampler(weights2,len(weights2))
     trainloader = torch.utils.data.DataLoader(train_data,
                    sampler=train_sampler, batch_size=8)
     testloader = torch.utils.data.DataLoader(test_data,
-                   sampler=test_sampler, batch_size=8)
+                   sampler=test_sampler, batch_size=16) #brze jer ne koristi grad
     return trainloader, testloader
 
 trainloader, testloader = load_split_train_test(data_dir, .2)
@@ -114,12 +118,16 @@ model = nn.Sequential(nn.Linear(input_size, hidden_sizes[0]),
                       nn.LogSoftmax(dim=1))            #multiklasifikacioni problem-logsoftmax -> zbir verovatnoca je 1,visa vrednost=veca vrvtnoca
 print(model)
 
-optimizer = optim.SGD(model.parameters(), lr=0.003, momentum=0.9)
+optimizer = optim.SGD(model.parameters(), lr=0.002, momentum=0.9)
 time0 = time()
 epochs = 30
+
+trlo=[]
+testlo=[]
+
 for e in range(epochs):
     running_loss = 0
-    test_loss=0
+    model.train()
     for images, labels in trainloader:
         # Flatten images into a 900 long vector
         images = images.view(images.shape[0], -1)
@@ -138,11 +146,27 @@ for e in range(epochs):
         optimizer.step()
 
         running_loss += loss.item()
+
+        optimizer.zero_grad()
+
     else:
+        model.eval()
         print("Epoch {} - Training loss: {}".format(e, running_loss / len(trainloader)))
+        trlo.append(running_loss / len(trainloader))
+
+        with torch.no_grad():
+                valid_loss = sum(criterion(model(xb.view(xb.shape[0], -1)), yb) for xb, yb in testloader)
+                testlo.append(valid_loss / len(testloader))
+        print(e, valid_loss / len(testloader))
+
 print("\nTraining Time (in minutes) =", (time() - time0) / 60)
 
 torch.save(model, './my_chess_model.pt')
+
+plt.plot(trlo, label='Training loss')
+plt.plot(testlo, label='Validation loss')
+plt.legend(frameon=False)
+plt.show()
 
 correct_count, all_count = 0, 0
 for images, labels in testloader:
