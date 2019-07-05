@@ -90,7 +90,7 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
     train_idx, test_idx = indices[split:], indices[:split]
     train_sampler = WeightedRandomSampler(weights, len(weights))
     test_sampler = WeightedRandomSampler(weights2,len(weights2))
-    trainloader = torch.utils.data.DataLoader(train_data,sampler=train_sampler, batch_size=16)
+    trainloader = torch.utils.data.DataLoader(train_data,sampler=train_sampler, batch_size=8)
     testloader = torch.utils.data.DataLoader(test_data, sampler=test_sampler, batch_size=8) #brze jer ne koristi grad
     return trainloader, testloader
 
@@ -113,14 +113,14 @@ model = nn.Sequential(nn.Linear(input_size, hidden_sizes[0]),
                       nn.Dropout(p=0.5),
                       nn.Linear(hidden_sizes[0], hidden_sizes[1]),
                       nn.ReLU(),
-                      nn.Dropout(p=0.5),
+                     # nn.Dropout(p=0.5),
                       nn.Linear(hidden_sizes[1], output_size),
                       nn.LogSoftmax(dim=1))            #multiklasifikacioni problem-logsoftmax -> zbir verovatnoca je 1,visa vrednost=veca vrvtnoca
 print(model)
 print(trainloader.__sizeof__())
 print(testloader.__sizeof__())
 
-optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+optimizer = optim.SGD(model.parameters(), lr=0.002, momentum=0.9)
 time0 = time()
 epochs = 35
 
