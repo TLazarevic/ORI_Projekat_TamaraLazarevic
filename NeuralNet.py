@@ -47,7 +47,7 @@ def make_weights_for_balanced_classes(images, nclasses):
 
 
 
-def load_split_train_test(datadir, valid_size = .2):            #organizacija trening/validacionog skupa
+def load_split_train_test(datadir,datadir2, valid_size = .2):            #organizacija trening/validacionog skupa
     train_transforms = transforms.Compose([transforms.Resize([30,30]),
                                           transforms.Grayscale(),
                                        transforms.ToTensor(),
@@ -56,7 +56,7 @@ def load_split_train_test(datadir, valid_size = .2):            #organizacija tr
                                            lambda x: x >= 0,
                                            lambda x: x.float(),
                                            transforms.Normalize(mean=[ 0.5],
-                                                                std=[ 0.225])
+                                                                std=[ 0.5])
 
 
                                        ])
@@ -65,15 +65,15 @@ def load_split_train_test(datadir, valid_size = .2):            #organizacija tr
                                           transforms.ToTensor(),
                                           transforms.Normalize([0.5], [0.5]),
 
-                                          lambda x: x > 0,
+                                          lambda x: x >= 0,
                                           lambda x: x.float(),
                                           transforms.Normalize(mean=[ 0.5],
-                                                               std=[ 0.225])
+                                                               std=[ 0.5])
 
                                       ])
     train_data = datasets.ImageFolder(datadir,
                     transform=train_transforms)
-    test_data = datasets.ImageFolder(datadir,
+    test_data = datasets.ImageFolder(datadir2,
                     transform=test_transforms)
     num_train = len(train_data)
     indices = list(range(num_train))
@@ -90,13 +90,11 @@ def load_split_train_test(datadir, valid_size = .2):            #organizacija tr
     train_idx, test_idx = indices[split:], indices[:split]
     train_sampler = WeightedRandomSampler(weights, len(weights))
     test_sampler = WeightedRandomSampler(weights2,len(weights2))
-    trainloader = torch.utils.data.DataLoader(train_data,
-                   sampler=train_sampler, batch_size=8)
-    testloader = torch.utils.data.DataLoader(test_data,
-                   sampler=test_sampler, batch_size=16) #brze jer ne koristi grad
+    trainloader = torch.utils.data.DataLoader(train_data,sampler=train_sampler, batch_size=16)
+    testloader = torch.utils.data.DataLoader(test_data, sampler=test_sampler, batch_size=8) #brze jer ne koristi grad
     return trainloader, testloader
 
-trainloader, testloader = load_split_train_test(data_dir, .2)
+trainloader, testloader = load_split_train_test(data_dir,data_dir2, .2)
 
 
 device = torch.device("cuda" if torch.cuda.is_available()
@@ -112,15 +110,19 @@ criterion = nn.NLLLoss()
 
 model = nn.Sequential(nn.Linear(input_size, hidden_sizes[0]),
                       nn.ReLU(),
+                      nn.Dropout(p=0.5),
                       nn.Linear(hidden_sizes[0], hidden_sizes[1]),
                       nn.ReLU(),
+                      nn.Dropout(p=0.5),
                       nn.Linear(hidden_sizes[1], output_size),
                       nn.LogSoftmax(dim=1))            #multiklasifikacioni problem-logsoftmax -> zbir verovatnoca je 1,visa vrednost=veca vrvtnoca
 print(model)
+print(trainloader.__sizeof__())
+print(testloader.__sizeof__())
 
-optimizer = optim.SGD(model.parameters(), lr=0.002, momentum=0.9)
+optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 time0 = time()
-epochs = 30
+epochs = 35
 
 trlo=[]
 testlo=[]

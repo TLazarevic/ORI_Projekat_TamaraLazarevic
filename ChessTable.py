@@ -260,7 +260,6 @@ for p in polja:
     tensorpre=torch.exp(tensorpred)
     pred=list(tensorpre.numpy()[0])
     pre=pred.index(max(pred))
-    print("prediction")
     maxpred=(pred.index(max(pred)))
 
     print(maxpred,switch(maxpred))
