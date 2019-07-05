@@ -97,32 +97,32 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
 trainloader, testloader = load_split_train_test(data_dir,data_dir2, .2)
 
 
-device = torch.device("cuda" if torch.cuda.is_available()
-                                  else "cpu")
+# device = torch.device("cuda" if torch.cuda.is_available()
+#                                   else "cpu")
 
 
 
 input_size = 900 #30x30  za svaku sliku
-hidden_sizes = [300, 100]
+hidden_sizes = [350, 200]
 output_size = 13 #6 figura svake boje+prazno polje
 
 criterion = nn.NLLLoss()
 
 model = nn.Sequential(nn.Linear(input_size, hidden_sizes[0]),
                       nn.ReLU(),
-                      nn.Dropout(p=0.5),
+                      #nn.Dropout(p=0.5),
                       nn.Linear(hidden_sizes[0], hidden_sizes[1]),
                       nn.ReLU(),
-                     # nn.Dropout(p=0.5),
+                     #nn.Dropout(p=0.5),
                       nn.Linear(hidden_sizes[1], output_size),
                       nn.LogSoftmax(dim=1))            #multiklasifikacioni problem-logsoftmax -> zbir verovatnoca je 1,visa vrednost=veca vrvtnoca
 print(model)
-print(trainloader.__sizeof__())
-print(testloader.__sizeof__())
+print(trainloader.__len__())
+print(testloader.__len__())
 
-optimizer = optim.SGD(model.parameters(), lr=0.002, momentum=0.9)
+optimizer = optim.SGD(model.parameters(), lr=0.002, momentum=0.9)#,weight_decay=0.0001)
 time0 = time()
-epochs = 35
+epochs = 25
 
 trlo=[]
 testlo=[]
