@@ -202,9 +202,10 @@ print(polja.__len__())
 #------------------------plots---------------------------------
 # br=0
 # for p in polja:
+#     #p = cv2.cvtColor(p, cv2.COLOR_GRAY2RGB)
 #     plt.figure()
-#     plt.imshow(p)
-#     plt.savefig('C:/Users/DELL/Documents/Tamara faks/ORI/trening_skup/'+str(br)+'.png')
+#     plt.imshow(p,cmap = plt.cm.gray)
+#     plt.savefig('C:/Users/DELL/Documents/Tamara faks/ORI/'+str(br)+'.png')
 #     br=br+1
 
 print(polja.__len__())
@@ -218,19 +219,21 @@ for i in intersections:
 
 #-----------------------predictions----------------------
 nn=torch.load("my_chess_model.pt")
-input_size = 900 #30x30  za svaku sliku
+input_size = 784 #30x30  za svaku sliku
 hidden_sizes = [300, 100]
 output_size = 13 #6 figura svake boje+prazno polje
 
-trans=transforms.Compose([transforms.Resize([30,30]),
+trans=transforms.Compose([transforms.Resize([28,28]),
                                           transforms.Grayscale(),
-                                       transforms.ToTensor(),
-                                           transforms.Normalize([0.5], [0.5]),
+                                          transforms.ToTensor(),
+                                          transforms.Normalize([0.5], [0.5]),
 
-                                           lambda x: x > 0,
+
+                                           lambda x: x >= 0,
                                            lambda x: x.float(),
-                                           transforms.Normalize(mean=[ 0.5],
-                                                                std=[ 0.225])
+                                          transforms.Normalize(mean=[ 0.5],
+                                                               std=[ 0.5])
+
 
                                      ])
 switcher = {
@@ -252,17 +255,32 @@ def switch(argument):
     return  switcher[argument]
 
 for p in polja:
-    p= PIL.Image.fromarray(p)
-    p=trans(p)
-    p = p.view(p.shape[0], -1)
-    with torch.no_grad():
-        tensorpred=nn(p)
-    tensorpre=torch.exp(tensorpred)
-    pred=list(tensorpre.numpy()[0])
-    pre=pred.index(max(pred))
-    maxpred=(pred.index(max(pred)))
+   
+    #image processing openCV
+    #dynamic thresholding instead of the statig one
+    _,p = cv2.threshold(p, 127, 255, cv2.THRESH_OTSU)
+    # p = cv2.adaptiveThreshold(p, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 20)
+    p=p/255.0
 
-    print(maxpred,switch(maxpred))
+    #p=trans(p)
+
+    # p = PIL.Image.fromarray(p)
+    # test=p.numpy()[0]
+    plt.figure()
+    plt.imshow(p)
+
+
+    # p = p.view(p.shape[0], -1)
+    # with torch.no_grad():
+    #     tensorpred=nn(p)
+    # tensorpre=torch.exp(tensorpred)
+    # pred=list(tensorpre.numpy()[0])
+    # pre=pred.index(max(pred))
+    # maxpred=(pred.index(max(pred)))
+    #
+    # print(maxpred,switch(maxpred))
+
+
 
 
 plt.imshow(img)

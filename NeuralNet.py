@@ -6,11 +6,14 @@ import cv2
 import torch
 import torch.nn.functional as F
 from PIL import Image
+from distributed import Variable
 from torch import nn, optim
 from torch.utils.data import DataLoader, WeightedRandomSampler
 import numpy as np
 from torchvision import datasets, transforms, models
 import matplotlib.pyplot as plt
+import PIL
+
 
 # imgs = []
 # labels1: List[str]=[]
@@ -48,33 +51,36 @@ def make_weights_for_balanced_classes(images, nclasses):
 
 
 def load_split_train_test(datadir,datadir2, valid_size = .2):            #organizacija trening/validacionog skupa
-    train_transforms = transforms.Compose([transforms.Resize([30,30]),
+    train_transforms = transforms.Compose([transforms.Resize([28,28]),
                                           transforms.Grayscale(),
                                        transforms.ToTensor(),
                                            transforms.Normalize([0.5], [0.5]),
 
-                                           lambda x: x >= 0,
-                                           lambda x: x.float(),
-                                           transforms.Normalize(mean=[ 0.5],
-                                                                std=[ 0.5])
+                                           #  lambda x: x >= 0,
+                                           #  lambda x: x.float(),
+                                           # transforms.Normalize(mean=[ 0.5],
+                                           #                      std=[ 0.5])
 
 
                                        ])
-    test_transforms = transforms.Compose([transforms.Resize([30,30]),
-                                          transforms.Grayscale(),
+    test_transforms = transforms.Compose([transforms.Resize([28,28]),
+                                         transforms.Grayscale(),
                                           transforms.ToTensor(),
                                           transforms.Normalize([0.5], [0.5]),
 
-                                          lambda x: x >= 0,
-                                          lambda x: x.float(),
-                                          transforms.Normalize(mean=[ 0.5],
-                                                               std=[ 0.5])
+
+                                          #  lambda x: x >= 0,
+                                          #  lambda x: x.float(),
+                                          # transforms.Normalize(mean=[ 0.5],
+                                          #                      std=[ 0.5])
 
                                       ])
     train_data = datasets.ImageFolder(datadir,
                     transform=train_transforms)
     test_data = datasets.ImageFolder(datadir2,
                     transform=test_transforms)
+
+
     num_train = len(train_data)
     indices = list(range(num_train))
     split = int(np.floor(valid_size * num_train))
@@ -102,7 +108,7 @@ trainloader, testloader = load_split_train_test(data_dir,data_dir2, .2)
 
 
 
-input_size = 900 #30x30  za svaku sliku
+input_size = 784 #30x30  za svaku sliku
 hidden_sizes = [350, 200]
 output_size = 13 #6 figura svake boje+prazno polje
 
@@ -110,17 +116,17 @@ criterion = nn.NLLLoss()
 
 model = nn.Sequential(nn.Linear(input_size, hidden_sizes[0]),
                       nn.ReLU(),
-                      #nn.Dropout(p=0.5),
+                     # nn.Dropout(p=0.5),
                       nn.Linear(hidden_sizes[0], hidden_sizes[1]),
                       nn.ReLU(),
-                     #nn.Dropout(p=0.5),
+                    # nn.Dropout(p=0.5),
                       nn.Linear(hidden_sizes[1], output_size),
                       nn.LogSoftmax(dim=1))            #multiklasifikacioni problem-logsoftmax -> zbir verovatnoca je 1,visa vrednost=veca vrvtnoca
 print(model)
 print(trainloader.__len__())
 print(testloader.__len__())
 
-optimizer = optim.SGD(model.parameters(), lr=0.002, momentum=0.9)#,weight_decay=0.0001)
+optimizer = optim.SGD(model.parameters(), lr=0.004, momentum=0.9,weight_decay=0.0001)
 time0 = time()
 epochs = 25
 
@@ -173,7 +179,7 @@ plt.show()
 correct_count, all_count = 0, 0
 for images, labels in testloader:
     for i in range(len(labels)):
-        img = images[i].view(1, 900)
+        img = images[i].view(1, 784)
         with torch.no_grad():
             logps = model(img)
 
