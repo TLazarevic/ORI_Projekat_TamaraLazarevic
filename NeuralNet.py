@@ -31,8 +31,8 @@ import PIL
 #     print(f)
 
 #--------------BALANSIRANJE DATA SETA------------------
-data_dir = 'C:/Users/DELL/Documents/Tamara faks/ORI/trening_skup'
-data_dir2 = 'C:/Users/DELL/Documents/Tamara faks/ORI/test_skup'
+data_dir = 'C:/Users/DELL/Documents/Tamara faks/ORI/trening_skup/'
+data_dir2 = 'C:/Users/DELL/Documents/Tamara faks/ORI/test_skup/'
 
 def make_weights_for_balanced_classes(images, nclasses):
     count = [0] * nclasses
@@ -51,10 +51,10 @@ def make_weights_for_balanced_classes(images, nclasses):
 
 
 def load_split_train_test(datadir,datadir2, valid_size = .2):            #organizacija trening/validacionog skupa
-    train_transforms = transforms.Compose([transforms.Resize([28,28]),
+    train_transforms = transforms.Compose([transforms.Resize([32,32]),
                                           transforms.Grayscale(),
                                        transforms.ToTensor(),
-                                           transforms.Normalize([0.5], [0.5]),
+                                           # transforms.Normalize([0.5], [0.5]),
 
                                            #  lambda x: x >= 0,
                                            #  lambda x: x.float(),
@@ -62,11 +62,13 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
                                            #                      std=[ 0.5])
 
 
+
+
                                        ])
-    test_transforms = transforms.Compose([transforms.Resize([28,28]),
+    test_transforms = transforms.Compose([transforms.Resize([32,32]),
                                          transforms.Grayscale(),
                                           transforms.ToTensor(),
-                                          transforms.Normalize([0.5], [0.5]),
+                                          # transforms.Normalize([0.5], [0.5]),
 
 
                                           #  lambda x: x >= 0,
@@ -75,10 +77,59 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
                                           #                      std=[ 0.5])
 
                                       ])
+    toPIL=transforms.Compose([ transforms.ToPILImage,
+
+    ])
+
     train_data = datasets.ImageFolder(datadir,
                     transform=train_transforms)
     test_data = datasets.ImageFolder(datadir2,
                     transform=test_transforms)
+
+    # for images, labels in train_data:
+    #
+    #       #  images[i] = transforms.Resize([30, 30])
+    #         _, images = cv2.threshold(images, 127, 255, cv2.THRESH_OTSU)
+    #        # images[i] = transforms.ToTensor()
+    #
+    # for images, labels in test_data:
+    #
+    #        # images[i] = transforms.Resize([30, 30])
+    #         _, images = cv2.threshold(images, 127, 255, cv2.THRESH_OTSU)
+    #        # images[i] = transforms.ToTensor()
+    #
+    # train_data=train_transforms(train_data)
+    # test_data=test_transforms(test_data)
+
+    nbins = 9  # broj binova
+    cell_size = (2, 2)  # broj piksela po celiji
+    block_size = (2, 2)  # broj celija po bloku
+
+
+    for im,l in train_data:
+        im = im.numpy()
+        hog = cv2.HOGDescriptor(_winSize=(im.shape[1] // cell_size[1] * cell_size[1],
+                                          im.shape[0] // cell_size[0] * cell_size[0]),
+                                _blockSize=(block_size[1] * cell_size[1],
+                                            block_size[0] * cell_size[0]),
+                                _blockStride=(cell_size[1], cell_size[0]),
+                                _cellSize=(cell_size[1], cell_size[0]),
+                                _nbins=nbins)
+
+
+        im=hog.compute(im)
+    for im,l in test_data:
+        im = im.numpy()
+        hog = cv2.HOGDescriptor(_winSize=(im.shape[1] // cell_size[1] * cell_size[1],
+                                          im.shape[0] // cell_size[0] * cell_size[0]),
+                                _blockSize=(block_size[1] * cell_size[1],
+                                            block_size[0] * cell_size[0]),
+                                _blockStride=(cell_size[1], cell_size[0]),
+                                _cellSize=(cell_size[1], cell_size[0]),
+                                _nbins=nbins)
+
+
+        im=hog.compute(im)
 
 
     num_train = len(train_data)
@@ -103,12 +154,13 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
 trainloader, testloader = load_split_train_test(data_dir,data_dir2, .2)
 
 
+
 # device = torch.device("cuda" if torch.cuda.is_available()
 #                                   else "cpu")
 
 
 
-input_size = 784 #30x30  za svaku sliku
+input_size = 900 #30x30  za svaku sliku
 hidden_sizes = [350, 200]
 output_size = 13 #6 figura svake boje+prazno polje
 
@@ -126,9 +178,9 @@ print(model)
 print(trainloader.__len__())
 print(testloader.__len__())
 
-optimizer = optim.SGD(model.parameters(), lr=0.004, momentum=0.9,weight_decay=0.0001)
+optimizer = optim.SGD(model.parameters(), lr=0.003, momentum=0.9,weight_decay=0.0001)
 time0 = time()
-epochs = 25
+epochs = 35
 
 trlo=[]
 testlo=[]
@@ -179,7 +231,9 @@ plt.show()
 correct_count, all_count = 0, 0
 for images, labels in testloader:
     for i in range(len(labels)):
-        img = images[i].view(1, 784)
+
+        img = images[i].view(1, 900)
+
         with torch.no_grad():
             logps = model(img)
 

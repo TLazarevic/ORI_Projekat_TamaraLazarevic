@@ -7,8 +7,8 @@ import cv2  # OpenCV biblioteka
 import matplotlib.pyplot as plt
 from PIL import Image
 import torch
-from matplotlib import cm
-from torch.autograd import Variable
+from distributed import Variable
+
 from torchvision import transforms
 from tkinter import filedialog
 
@@ -200,13 +200,16 @@ for p in range(temp - 1, -1, -1):
 
 print(polja.__len__())
 #------------------------plots---------------------------------
-# br=0
-# for p in polja:
-#     #p = cv2.cvtColor(p, cv2.COLOR_GRAY2RGB)
-#     plt.figure()
-#     plt.imshow(p,cmap = plt.cm.gray)
-#     plt.savefig('C:/Users/DELL/Documents/Tamara faks/ORI/'+str(br)+'.png')
-#     br=br+1
+br=0
+for p in polja:
+    #p = cv2.cvtColor(p, cv2.COLOR_GRAY2RGB)
+    _, p = cv2.threshold(p, 127, 255, cv2.THRESH_OTSU)
+    # p = cv2.adaptiveThreshold(p, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 20)
+    p = p / 255.0
+    plt.figure()
+    plt.imshow(p,cmap = plt.cm.gray)
+    plt.savefig('C:/Users/DELL/Desktop/slike/'+str(br)+'.png')
+    br=br+1
 
 print(polja.__len__())
 # print(intersections)
@@ -255,7 +258,7 @@ def switch(argument):
     return  switcher[argument]
 
 for p in polja:
-   
+
     #image processing openCV
     #dynamic thresholding instead of the statig one
     _,p = cv2.threshold(p, 127, 255, cv2.THRESH_OTSU)
@@ -266,12 +269,16 @@ for p in polja:
 
     # p = PIL.Image.fromarray(p)
     # test=p.numpy()[0]
-    plt.figure()
-    plt.imshow(p)
+    # plt.figure()
+    # plt.imshow(p)
 
+    # print(type(p))
 
-    # p = p.view(p.shape[0], -1)
-    # with torch.no_grad():
+    # p = p.view(1, 900)
+    # p = p.ToTensor()
+    #
+    # #
+    # # with torch.no_grad():
     #     tensorpred=nn(p)
     # tensorpre=torch.exp(tensorpred)
     # pred=list(tensorpre.numpy()[0])
