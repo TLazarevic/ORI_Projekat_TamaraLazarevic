@@ -4,15 +4,13 @@ from typing import List
 
 import cv2
 import torch
-import torch.nn.functional as F
-from PIL import Image
-from distributed import Variable
 from torch import nn, optim
 from torch.utils.data import DataLoader, WeightedRandomSampler
 import numpy as np
 from torchvision import datasets, transforms, models
 import matplotlib.pyplot as plt
-import PIL
+import scipy
+from scipy import misc
 
 
 # imgs = []
@@ -53,7 +51,7 @@ def make_weights_for_balanced_classes(images, nclasses):
 def load_split_train_test(datadir,datadir2, valid_size = .2):            #organizacija trening/validacionog skupa
     train_transforms = transforms.Compose([transforms.Resize([32,32]),
                                           transforms.Grayscale(),
-                                       transforms.ToTensor(),
+                                       #transforms.ToTensor(),
                                            # transforms.Normalize([0.5], [0.5]),
 
                                            #  lambda x: x >= 0,
@@ -67,7 +65,7 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
                                        ])
     test_transforms = transforms.Compose([transforms.Resize([32,32]),
                                          transforms.Grayscale(),
-                                          transforms.ToTensor(),
+                                          #transforms.ToTensor(),
                                           # transforms.Normalize([0.5], [0.5]),
 
 
@@ -77,7 +75,7 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
                                           #                      std=[ 0.5])
 
                                       ])
-    toPIL=transforms.Compose([ transforms.ToPILImage,
+    t2=transforms.Compose([ transforms.ToTensor(),
 
     ])
 
@@ -107,9 +105,16 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
 
 
     for im,l in train_data:
-        im = im.numpy()
-        hog = cv2.HOGDescriptor(_winSize=(im.shape[1] // cell_size[1] * cell_size[1],
-                                          im.shape[0] // cell_size[0] * cell_size[0]),
+        # print(im.dtype)
+
+        im = np.asarray(im, dtype="int32")
+        im = np.array(im * 255, dtype=np.uint8)
+        #
+        # img = scipy.misc.toimage(im, mode='L')
+
+
+        hog = cv2.HOGDescriptor(_winSize=(32 // cell_size[1] * cell_size[1],
+                                          32 // cell_size[0] * cell_size[0]),
                                 _blockSize=(block_size[1] * cell_size[1],
                                             block_size[0] * cell_size[0]),
                                 _blockStride=(cell_size[1], cell_size[0]),
@@ -118,8 +123,10 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
 
 
         im=hog.compute(im)
+        im = torch.from_numpy(im)
     for im,l in test_data:
-        im = im.numpy()
+        im = np.asarray(im, dtype="int32")
+        im = np.array(im * 255, dtype=np.uint8)
         hog = cv2.HOGDescriptor(_winSize=(im.shape[1] // cell_size[1] * cell_size[1],
                                           im.shape[0] // cell_size[0] * cell_size[0]),
                                 _blockSize=(block_size[1] * cell_size[1],
@@ -130,6 +137,9 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
 
 
         im=hog.compute(im)
+        im=torch.from_numpy(im)
+
+
 
 
     num_train = len(train_data)
