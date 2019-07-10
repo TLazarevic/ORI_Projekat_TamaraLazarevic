@@ -12,6 +12,28 @@ from distributed import Variable
 from torchvision import transforms
 from tkinter import filedialog
 
+class MyHOG(object):
+    def __call__(self, input):
+        target=hogF(input)
+        return target
+
+def hogF(im):
+    im = np.asarray(im, dtype="int32")
+    im = np.array(im * 255, dtype=np.uint8)
+
+    nbins = 9  # broj binova
+    cell_size = (4, 4)  # broj piksela po celiji
+    block_size = (2, 2)  # broj celija po bloku
+
+    h=cv2.HOGDescriptor(_winSize=(32 // cell_size[1] * cell_size[1],
+                                  32 // cell_size[0] * cell_size[0]),
+                        _blockSize=(block_size[1] * cell_size[1],
+                                    block_size[0] * cell_size[0]),
+                        _blockStride=(cell_size[1], cell_size[0]),
+                        _cellSize=(cell_size[1], cell_size[0]),
+                        _nbins=nbins)
+    return h.compute(im)
+
 # ------------------------------otvaranje slike--------------------
 
 file_path = filedialog.askopenfilename()
@@ -177,6 +199,8 @@ sorty = sorted(intersections, key=lambda coor: coor[0][1])
 polja = []
 velicinepolja = []
 
+#_,img = cv2.threshold(gray, 50, 255, cv2.THRESH_OTSU)
+
 for i in range(0, intersections.__len__() - 1):
     for j in range(0, intersections.__len__() - 1):
         if img[sorty[j][0][1]:sorty[j + 1][0][1], sortx[i][0][0]:sortx[i + 1][0][0]].size != 0:
@@ -200,16 +224,16 @@ for p in range(temp - 1, -1, -1):
 
 print(polja.__len__())
 #------------------------plots---------------------------------
-br=0
-for p in polja:
-    #p = cv2.cvtColor(p, cv2.COLOR_GRAY2RGB)
-    _, p = cv2.threshold(p, 127, 255, cv2.THRESH_OTSU)
-    # p = cv2.adaptiveThreshold(p, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 20)
-    p = p / 255.0
-    plt.figure()
-    plt.imshow(p,cmap = plt.cm.gray)
-    plt.savefig('C:/Users/DELL/Desktop/slike/'+str(br)+'.png')
-    br=br+1
+# br=0
+# for p in polja:
+#     #p = cv2.cvtColor(p, cv2.COLOR_GRAY2RGB)
+#     _, p = cv2.threshold(p, 127, 255, cv2.THRESH_OTSU)
+#     # p = cv2.adaptiveThreshold(p, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 20)
+#     p = p / 255.0
+#     plt.figure()
+#     plt.imshow(p,cmap = plt.cm.gray)
+#     plt.savefig('C:/Users/DELL/Desktop/slike/'+str(br)+'.png')
+#     br=br+1
 
 print(polja.__len__())
 # print(intersections)
@@ -221,21 +245,17 @@ for i in intersections:
 
 
 #-----------------------predictions----------------------
-nn=torch.load("my_chess_model.pt")
-input_size = 784 #30x30  za svaku sliku
-hidden_sizes = [300, 100]
+nnet=torch.load("my_chess_model.pt")
+nnet.eval()
+
+input_size = 1764 #30x30  za svaku sliku
+hidden_sizes = [400, 200]
 output_size = 13 #6 figura svake boje+prazno polje
 
-trans=transforms.Compose([transforms.Resize([28,28]),
-                                          transforms.Grayscale(),
+transf=transforms.Compose([transforms.Resize([32,32]),
+                                         transforms.Grayscale(),
+                                          MyHOG(),
                                           transforms.ToTensor(),
-                                          transforms.Normalize([0.5], [0.5]),
-
-
-                                           lambda x: x >= 0,
-                                           lambda x: x.float(),
-                                          transforms.Normalize(mean=[ 0.5],
-                                                               std=[ 0.5])
 
 
                                      ])
@@ -261,11 +281,11 @@ for p in polja:
 
     #image processing openCV
     #dynamic thresholding instead of the statig one
-    _,p = cv2.threshold(p, 127, 255, cv2.THRESH_OTSU)
+    #_,p = cv2.threshold(p, 127, 255, cv2.THRESH_OTSU)
     # p = cv2.adaptiveThreshold(p, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 20)
-    p=p/255.0
+    #p=p/255.0
 
-    #p=trans(p)
+
 
     # p = PIL.Image.fromarray(p)
     # test=p.numpy()[0]
@@ -274,18 +294,19 @@ for p in polja:
 
     # print(type(p))
 
-    # p = p.view(1, 900)
-    # p = p.ToTensor()
-    #
-    # #
-    # # with torch.no_grad():
-    #     tensorpred=nn(p)
-    # tensorpre=torch.exp(tensorpred)
-    # pred=list(tensorpre.numpy()[0])
-    # pre=pred.index(max(pred))
-    # maxpred=(pred.index(max(pred)))
-    #
-    # print(maxpred,switch(maxpred))
+    p=PIL.Image.fromarray(p)
+    p=transf(p)
+
+    p = p.view(p.shape[0], -1)
+
+    with torch.no_grad():
+        tensorpred=nnet(p)
+    tensorpre=torch.exp(tensorpred)
+    pred=list(tensorpre.numpy()[0])
+    pre=pred.index(max(pred))
+    maxpred=(pred.index(max(pred)))
+
+    print(maxpred,switch(maxpred))
 
 
 
