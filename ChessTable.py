@@ -252,6 +252,7 @@ input_size = 1764 #30x30  za svaku sliku
 hidden_sizes = [400, 200]
 output_size = 13 #6 figura svake boje+prazno polje
 
+
 transf=transforms.Compose([transforms.Resize([32,32]),
                                          transforms.Grayscale(),
                                           MyHOG(),
