@@ -1,7 +1,7 @@
 import os
 from time import time
 from typing import List
-
+import torch.nn.functional as F
 import cv2
 import torch
 import torchvision
@@ -24,16 +24,18 @@ def hogF(im):
 
     nbins = 9  # broj binova
     cell_size = (4, 4)  # broj piksela po celiji
-    block_size = (2, 2)  # broj celija po bloku
+    block_size = (3, 3)  # broj celija po bloku
 
-    h=cv2.HOGDescriptor(_winSize=(32 // cell_size[1] * cell_size[1],
-                                  32 // cell_size[0] * cell_size[0]),
+    h=cv2.HOGDescriptor(_winSize=(30 // cell_size[1] * cell_size[1],
+                                  30 // cell_size[0] * cell_size[0]),
                         _blockSize=(block_size[1] * cell_size[1],
                                     block_size[0] * cell_size[0]),
                         _blockStride=(cell_size[1], cell_size[0]),
                         _cellSize=(cell_size[1], cell_size[0]),
                         _nbins=nbins)
     return h.compute(im)
+
+
 #--------------BALANSIRANJE DATA SETA------------------
 data_dir = 'C:/Users/DELL/Documents/Tamara faks/ORI/trening_skup/'
 data_dir2 = 'C:/Users/DELL/Documents/Tamara faks/ORI/test_skup/'
@@ -55,9 +57,10 @@ def make_weights_for_balanced_classes(images, nclasses):
 
 
 def load_split_train_test(datadir,datadir2, valid_size = .2):            #organizacija trening/validacionog skupa
-    train_transforms = transforms.Compose([transforms.Resize([32,32]),
+    train_transforms = transforms.Compose([transforms.Resize([30,30]),
                                           transforms.Grayscale(),
                                            MyHOG(),
+
                                            transforms.ToTensor(),
                                        #transforms.ToTensor(),
                                            # transforms.Normalize([0.5], [0.5]),
@@ -71,9 +74,10 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
 
 
                                        ])
-    test_transforms = transforms.Compose([transforms.Resize([32,32]),
+    test_transforms = transforms.Compose([transforms.Resize([30,30]),
                                          transforms.Grayscale(),
                                           MyHOG(),
+
                                           transforms.ToTensor(),
                                           #transforms.ToTensor(),
                                           # transforms.Normalize([0.5], [0.5]),
@@ -138,28 +142,33 @@ trainloader, testloader = load_split_train_test(data_dir,data_dir2, .2)
 #                                   else "cpu")
 
 
-
-input_size = 1764 #30x30  za svaku sliku
-hidden_sizes = [400, 200]
+input_size = 2025 #30x30  za svaku sliku
+hidden_sizes = [600, 200]
 output_size = 13 #6 figura svake boje+prazno polje
 
 criterion = nn.NLLLoss()
 
-model = nn.Sequential(nn.Linear(input_size, hidden_sizes[0]),
-                      nn.ReLU(),
-                     # nn.Dropout(p=0.5),
-                      nn.Linear(hidden_sizes[0], hidden_sizes[1]),
-                      nn.ReLU(),
-                    # nn.Dropout(p=0.5),
-                      nn.Linear(hidden_sizes[1], output_size),
-                      nn.LogSoftmax(dim=1))            #multiklasifikacioni problem-logsoftmax -> zbir verovatnoca je 1,visa vrednost=veca vrvtnoca
+class NN(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.lin = nn.Linear(2025, 600)
+        self.lin2=nn.Linear(600,200)
+        self.lin3=nn.Linear(200,13)
+
+    def forward(self, xb):
+        x=F.relu(self.lin(xb))
+        x=F.relu(self.lin2(x))
+        x=F.log_softmax(self.lin3(x),dim=1)
+        return x
+
+model=NN()
 print(model)
 print(trainloader.__len__())
 print(testloader.__len__())
 
 optimizer = optim.SGD(model.parameters(), lr=0.003, momentum=0.9,weight_decay=0.0001)
 time0 = time()
-epochs = 35
+epochs = 23
 
 trlo=[]
 testlo=[]
@@ -200,7 +209,7 @@ for e in range(epochs):
 
 print("\nTraining Time (in minutes) =", (time() - time0) / 60)
 
-torch.save(model, './my_chess_model.pt')
+torch.save(model.state_dict(), './my_chess_model.pt')
 
 plt.plot(trlo, label='Training loss')
 plt.plot(testlo, label='Validation loss')
@@ -211,11 +220,10 @@ correct_count, all_count = 0, 0
 for images, labels in testloader:
     for i in range(len(labels)):
 
-        img = images[i].view(1, 1764)
+        img = images[i].view(1, 2025)
 
         with torch.no_grad():
             logps = model(img)
-
         ps = torch.exp(logps)
         probab = list(ps.numpy()[0])
         pred_label = probab.index(max(probab))
