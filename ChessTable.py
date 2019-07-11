@@ -2,10 +2,12 @@
 import numpy as np
 import cv2  # OpenCV biblioteka
 import matplotlib.pyplot as plt
+import skimage
 from PIL import Image
 import torch
 from torch import nn
 import torch.nn.functional as F
+import skimage.color
 
 from torchvision import transforms
 from tkinter import filedialog
@@ -19,7 +21,8 @@ class MyHOG(object):
 
 def hogF(im):
     im = np.asarray(im, dtype="int32")
-    im = np.array(im * 255, dtype=np.uint8)
+    im = np.array(im*255 , dtype=np.uint8)
+
 
     nbins = 9  # broj binova
     cell_size = (4, 4)  # broj piksela po celiji
@@ -263,13 +266,16 @@ class NN(nn.Module):
 
 nnet=NN()
 nnet.load_state_dict(torch.load("my_chess_model.pt"))
+for param in nnet.parameters():
+  print(param.data)
 nnet.eval()
 
 input_size = 2025  # 30x30  za svaku sliku
 hidden_sizes = [600, 200]
 output_size = 13  # 6 figura svake boje+prazno polje
 
-transf = transforms.Compose([transforms.Resize([30, 30]),
+transf = transforms.Compose([transforms.ToPILImage(),
+                            transforms.Resize([30, 30]),
                              transforms.Grayscale(),
                              MyHOG(),
                              transforms.ToTensor(),
@@ -295,7 +301,8 @@ switcher = {
 def switch(argument):
     return switcher[argument]
 
-
+matrix=[]
+br=0
 for p in polja:
     # image processing openCV
     # dynamic thresholding instead of the statig one
@@ -310,10 +317,11 @@ for p in polja:
 
     # print(type(p))
 
-    p = Image.fromarray(p)
+    #p = Image.fromarray( p,'L')
 
-    plt.figure()
-    plt.imshow(p, )
+    # plt.figure()
+    # plt.imshow(p, )
+
 
     p = transf(p)
 
@@ -327,8 +335,11 @@ for p in polja:
 
     plt.title(pred_label)
 
-    print(pred_label, switch(pred_label))
+    #print(pred_label, switch(pred_label))
+    matrix.append(switch(pred_label))
 
-plt.figure()
+matrix=np.reshape(matrix,(8,8),order='F')
+print(matrix)
+
 plt.imshow(img)
 plt.show()

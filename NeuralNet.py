@@ -19,8 +19,13 @@ class MyHOG(object):
         return target
 
 def hogF(im):
-    im = np.asarray(im, dtype="int32")
+    im = np.asarray(im)
     im = np.array(im * 255, dtype=np.uint8)
+    # print(im)
+    # #
+    #
+    # plt.imshow(im)
+    # plt.show()
 
     nbins = 9  # broj binova
     cell_size = (4, 4)  # broj piksela po celiji
@@ -57,9 +62,11 @@ def make_weights_for_balanced_classes(images, nclasses):
 
 
 def load_split_train_test(datadir,datadir2, valid_size = .2):            #organizacija trening/validacionog skupa
-    train_transforms = transforms.Compose([transforms.Resize([30,30]),
+    train_transforms = transforms.Compose([
+                                        transforms.CenterCrop(385),
+                                          transforms.Resize([30,30]),
                                           transforms.Grayscale(),
-                                           MyHOG(),
+                                          MyHOG(),
 
                                            transforms.ToTensor(),
                                        #transforms.ToTensor(),
@@ -74,7 +81,8 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
 
 
                                        ])
-    test_transforms = transforms.Compose([transforms.Resize([30,30]),
+    test_transforms = transforms.Compose([transforms.CenterCrop(385),
+                                    transforms.Resize([30,30]),
                                          transforms.Grayscale(),
                                           MyHOG(),
 
@@ -130,16 +138,17 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
     train_sampler = WeightedRandomSampler(weights, len(weights))
     test_sampler = WeightedRandomSampler(weights2,len(weights2))
     trainloader = torch.utils.data.DataLoader(train_data,sampler=train_sampler, batch_size=8)
-    print(trainloader)
     testloader = torch.utils.data.DataLoader(test_data, sampler=test_sampler, batch_size=8) #brze jer ne koristi grad
     return trainloader, testloader
 
 trainloader, testloader = load_split_train_test(data_dir,data_dir2, .2)
 
+plt.show()
 
 
 # device = torch.device("cuda" if torch.cuda.is_available()
 #                                   else "cpu")
+
 
 
 input_size = 2025 #30x30  za svaku sliku
@@ -151,9 +160,13 @@ criterion = nn.NLLLoss()
 class NN(nn.Module):
     def __init__(self):
         super().__init__()
+
         self.lin = nn.Linear(2025, 600)
+
         self.lin2=nn.Linear(600,200)
         self.lin3=nn.Linear(200,13)
+
+
 
     def forward(self, xb):
         x=F.relu(self.lin(xb))
@@ -168,10 +181,12 @@ print(testloader.__len__())
 
 optimizer = optim.SGD(model.parameters(), lr=0.003, momentum=0.9,weight_decay=0.0001)
 time0 = time()
-epochs = 23
+epochs = 24
 
 trlo=[]
 testlo=[]
+
+plt.show()
 
 for e in range(epochs):
     running_loss = 0
@@ -210,6 +225,8 @@ for e in range(epochs):
 print("\nTraining Time (in minutes) =", (time() - time0) / 60)
 
 torch.save(model.state_dict(), './my_chess_model.pt')
+for param in model.parameters():
+  print(param.data)
 
 plt.plot(trlo, label='Training loss')
 plt.plot(testlo, label='Validation loss')
