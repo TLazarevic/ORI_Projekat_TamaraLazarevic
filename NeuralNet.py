@@ -28,7 +28,7 @@ def hogF(im):
     # plt.show()
 
     nbins = 9  # broj binova
-    cell_size = (4, 4)  # broj piksela po celiji
+    cell_size = (3, 3)  # broj piksela po celiji
     block_size = (3, 3)  # broj celija po bloku
 
     h=cv2.HOGDescriptor(_winSize=(30 // cell_size[1] * cell_size[1],
@@ -106,6 +106,9 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
     test_data = datasets.ImageFolder(datadir2,
                     transform=test_transforms)
 
+    print(train_data.__len__())
+    print(test_data.__len__())
+
     tr2=datasets.VisionDataset(train_data,transform=t2)
     # for images, labels in train_data:
     #
@@ -143,17 +146,12 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
 
 trainloader, testloader = load_split_train_test(data_dir,data_dir2, .2)
 
-plt.show()
-
-
 # device = torch.device("cuda" if torch.cuda.is_available()
 #                                   else "cpu")
-
-
-
-input_size = 2025 #30x30  za svaku sliku
-hidden_sizes = [600, 200]
-output_size = 13 #6 figura svake boje+prazno polje
+#
+# input_size = 5184 #30x30  za svaku sliku
+# hidden_sizes = [700, 300]
+# output_size = 13 #6 figura svake boje+prazno polje
 
 criterion = nn.NLLLoss()
 
@@ -161,11 +159,9 @@ class NN(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.lin = nn.Linear(2025, 600)
-
+        self.lin = nn.Linear(5184, 600)
         self.lin2=nn.Linear(600,200)
         self.lin3=nn.Linear(200,13)
-
 
 
     def forward(self, xb):
@@ -176,17 +172,15 @@ class NN(nn.Module):
 
 model=NN()
 print(model)
-print(trainloader.__len__())
-print(testloader.__len__())
+
 
 optimizer = optim.SGD(model.parameters(), lr=0.003, momentum=0.9,weight_decay=0.0001)
 time0 = time()
-epochs = 24
+epochs = 25
 
 trlo=[]
 testlo=[]
 
-plt.show()
 
 for e in range(epochs):
     running_loss = 0
@@ -225,8 +219,8 @@ for e in range(epochs):
 print("\nTraining Time (in minutes) =", (time() - time0) / 60)
 
 torch.save(model.state_dict(), './my_chess_model.pt')
-for param in model.parameters():
-  print(param.data)
+# for param in model.parameters():
+#   print(param.data)
 
 plt.plot(trlo, label='Training loss')
 plt.plot(testlo, label='Validation loss')
@@ -237,7 +231,7 @@ correct_count, all_count = 0, 0
 for images, labels in testloader:
     for i in range(len(labels)):
 
-        img = images[i].view(1, 2025)
+        img = images[i].view(1,5184)
 
         with torch.no_grad():
             logps = model(img)

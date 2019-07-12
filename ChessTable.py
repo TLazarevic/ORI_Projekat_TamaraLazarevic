@@ -109,7 +109,7 @@ intersections = []
 for line1 in vertlines:
     for line2 in horlines:
         intersections.append(intersection(line1, line2))
-        
+
 
 # ---------------brisanje duplih preseka-----------
 
@@ -266,7 +266,7 @@ for p in polja:
     # p = p / 255.0
     plt.figure()
     plt.imshow(p,cmap = plt.cm.gray)
-    plt.savefig('C:/Users/DELL/Desktop/slike/'+str(br)+'m'+'.png')
+    plt.savefig('C:/Users/DELL/Desktop/slike/'+str(br)+'polje4'+'.png')
     br=br+1
 
 print(polja.__len__())
@@ -364,7 +364,7 @@ for p in polja:
     #print(pred_label, switch(pred_label))
     matrix.append(switch(pred_label))
 
-#matrix=np.reshape(matrix,(8,8),order='F')
+matrix=np.reshape(matrix,(8,8),order='F')
 print(matrix)
 
 plt.imshow(img)
