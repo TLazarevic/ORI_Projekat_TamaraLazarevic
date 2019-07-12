@@ -51,6 +51,21 @@ gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 edges = cv2.Canny(gray, 50, 150, apertureSize=3)
 lines = cv2.HoughLines(edges, 1, np.pi / 180, 230)
 
+print(len(lines))
+
+if(len(lines)>10000):
+    lines = cv2.HoughLines(edges, 1, np.pi / 180, 360)
+elif(len(lines)>1000):
+    lines = cv2.HoughLines(edges, 1, np.pi / 180, 320)
+elif(len(lines)>500):
+    lines = cv2.HoughLines(edges, 1, np.pi / 180, 320)
+elif(len(lines)>300):
+    lines = cv2.HoughLines(edges, 1, np.pi / 180, 350)
+elif(len(lines>100)):
+    lines = cv2.HoughLines(edges, 1, np.pi / 180, 270)
+
+
+
 lines = np.unique(lines, axis=0)
 
 for line in lines:
@@ -94,6 +109,7 @@ intersections = []
 for line1 in vertlines:
     for line2 in horlines:
         intersections.append(intersection(line1, line2))
+        
 
 # ---------------brisanje duplih preseka-----------
 
@@ -101,40 +117,51 @@ fieldWid = int(
     img.shape[1] / 8)  # sirina sahovske table odgovara sirini (i duzini) osam polja i na skrinsotu i na isecenoj slici
 fieldLen = int(img.shape[1] / 8)
 
-icopy = intersections;
+print(fieldLen)
+
+
+icopy = intersections
 
 print("intersections: ", intersections.__len__())
 print("intersections: ", intersections)
 
-for i in range((icopy.__len__() - 1), 0, -1):  # brisanje preseka koji su blizi nego velicina polja
-    if ((intersections[i][0][0] - intersections[i - 1][0][0]) < fieldWid / 2 + 5) and (
-            intersections[i][0][1] in range(intersections[i - 1][0][1] - 5, intersections[i - 1][0][1] + 5)):
-        intersections.remove(intersections[i])
-
-icopy = intersections;
-
-print("intersections: ", intersections.__len__())
-print("intersections: ", intersections)
+for cnt in range(2):
+    for i in range((icopy.__len__() - 1), -1, -1):  # brisanje preseka koji su blizi nego velicina polja
+        if (abs(intersections[i][0][0] - intersections[i - 1][0][0]) < fieldWid / 2 + 5) and (
+                intersections[i][0][1] in range(intersections[i - 1][0][1] - 5, intersections[i - 1][0][1] + 5)):
+            print("removed1"+str(intersections[i-1])+"reason "+str(intersections[i][0][0] - intersections[i - 1][0][0]))
+            intersections.remove(intersections[i-1])
 
 intersections = sorted(intersections, key=lambda coor: coor[0][0])
 print("intersections: ", intersections.__len__())
 print("intersections: ", intersections)
+icopy = intersections
 
-for i in range((icopy.__len__() - 1), -1, -1):  # brisanje preseka koji su blizi nego velicina polja
-    if ((intersections[i][0][1] - intersections[i - 1][0][1]) < fieldLen / 2 + 5) and (
-            intersections[i][0][0] in range(intersections[i - 1][0][0] - 5, intersections[i - 1][0][0] + 5)):
-        intersections.remove(intersections[i - 1])
+for cnt in range(2):
+    for i in range((icopy.__len__() - 1), -1, -1):  # brisanje preseka koji su blizi nego velicina polja
+        if (abs(intersections[i][0][1] - intersections[i - 1][0][1]) < fieldLen / 2 + 5) and (
+                intersections[i][0][0] in range(intersections[i - 1][0][0] - 5, intersections[i - 1][0][0] + 5)):
+            print("removed2" + str(intersections[i-1])+"reason "+str(intersections[i][0][1] - intersections[i - 1][0][1]))
+            intersections.remove(intersections[i-1])
 
-icopy = intersections;
 
-for i in range((icopy.__len__() - 1), -1,
-               -1):  # brisanje preseka koji su predaleko (pogresno detektovani preseci ostatka skrinsota)
-    if ((intersections[i][0][1] - intersections[i - 1][0][1]) > fieldLen + 15) and (
-            intersections[i][0][0] in range(intersections[i - 1][0][0] - 5, intersections[i - 1][0][0] + 5)):
-        if (intersections[i][0][1] > img.shape[0] / 2):
-            intersections.remove(intersections[i])
-        else:
-            intersections.remove(intersections[i - 1])
+print("intersections: ", intersections.__len__())
+print("intersections: ", intersections)
+icopy = intersections
+
+for cnt in range(3):
+    for i in range((icopy.__len__() - 1), -1,
+                   -1):  # brisanje preseka koji su predaleko (pogresno detektovani preseci ostatka skrinsota)
+        if (abs(intersections[i][0][1] - intersections[i - 1][0][1]) > fieldLen + 15) and (
+                intersections[i][0][0] in range(intersections[i - 1][0][0] - 5, intersections[i - 1][0][0] + 5)):
+            if (intersections[i][0][1] > img.shape[0] / 2):
+                print("removed3" + str(intersections[i])+"reason "+str((intersections[i][0][1] - intersections[i - 1][0][1])))
+                intersections.remove(intersections[i])
+
+            else:
+                print("removed3" + str(intersections[i])+"reason "+str((intersections[i][0][1] - intersections[i - 1][0][1])))
+                intersections.remove(intersections[i - 1])
+
 
 print("intersections: ", intersections.__len__())
 print("intersections: ", intersections)
@@ -218,7 +245,6 @@ for i in range(0, intersections.__len__() - 1):
                 velicinepolja.append(polja[-1].size)
 
 velicina = fieldLen * fieldWid
-print(velicina)
 
 temp = polja.__len__()
 print(polja.__len__())
@@ -232,16 +258,16 @@ for p in range(temp - 1, -1, -1):
 
 print(polja.__len__())
 # ------------------------plots---------------------------------
-# br=0
-# for p in polja:
-#     #p = cv2.cvtColor(p, cv2.COLOR_GRAY2RGB)
-#     _, p = cv2.threshold(p, 127, 255, cv2.THRESH_OTSU)
-#     # p = cv2.adaptiveThreshold(p, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 20)
-#     p = p / 255.0
-#     plt.figure()
-#     plt.imshow(p,cmap = plt.cm.gray)
-#     plt.savefig('C:/Users/DELL/Desktop/slike/'+str(br)+'.png')
-#     br=br+1
+br=0
+for p in polja:
+    #p = cv2.cvtColor(p, cv2.COLOR_GRAY2RGB)
+    # _, p = cv2.threshold(p, 127, 255, cv2.THRESH_OTSU)
+    # p = cv2.adaptiveThreshold(p, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 20)
+    # p = p / 255.0
+    plt.figure()
+    plt.imshow(p,cmap = plt.cm.gray)
+    plt.savefig('C:/Users/DELL/Desktop/slike/'+str(br)+'m'+'.png')
+    br=br+1
 
 print(polja.__len__())
 # print(intersections)
@@ -266,8 +292,8 @@ class NN(nn.Module):
 
 nnet=NN()
 nnet.load_state_dict(torch.load("my_chess_model.pt"))
-for param in nnet.parameters():
-  print(param.data)
+# for param in nnet.parameters():
+#   print(param.data)
 nnet.eval()
 
 input_size = 2025  # 30x30  za svaku sliku
@@ -338,7 +364,7 @@ for p in polja:
     #print(pred_label, switch(pred_label))
     matrix.append(switch(pred_label))
 
-matrix=np.reshape(matrix,(8,8),order='F')
+#matrix=np.reshape(matrix,(8,8),order='F')
 print(matrix)
 
 plt.imshow(img)
