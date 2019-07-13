@@ -25,7 +25,7 @@ def hogF(im):
 
 
     nbins = 9  # broj binova
-    cell_size = (4, 4)  # broj piksela po celiji
+    cell_size = (3, 3)  # broj piksela po celiji
     block_size = (3, 3)  # broj celija po bloku
 
     h = cv2.HOGDescriptor(_winSize=(30 // cell_size[1] * cell_size[1],
@@ -55,8 +55,8 @@ print(len(lines))
 
 if(len(lines)>10000):
     lines = cv2.HoughLines(edges, 1, np.pi / 180, 360)
-elif(len(lines)>1000):
-    lines = cv2.HoughLines(edges, 1, np.pi / 180, 320)
+elif(len(lines)>900):
+    lines = cv2.HoughLines(edges, 1, np.pi / 180, 340)
 elif(len(lines)>500):
     lines = cv2.HoughLines(edges, 1, np.pi / 180, 320)
 elif(len(lines)>300):
@@ -187,12 +187,12 @@ if lastYrowdot > img.shape[0]:
     while lastYrowdot > img.shape[0]:
         lastYrowdot = lastYrowdot - 1
 
-if (intersections[-1][0][1] + fieldLen) in range(-4 + img.shape[0], img.shape[0] + 4):  # fali donja ivica
+if (intersections[-1][0][1] + fieldLen) in range(-4 + img.shape[0], img.shape[0] + 4):  # fali donja ivica(za isecene slike)
     for i in x:
         intersections.append([[i, lastYrowdot]])
         # intersections.append([[i, img.shape[1]-2]])
 
-if (intersections[0][0][1] - fieldLen) in range(-4, 4):  # fali gornja ivica
+if (intersections[0][0][1] - fieldLen) in range(-4, 4):  # fali gornja ivica(za isecene slike)
     for i in x:
         # intersections.append([[i,2]])
         intersections.append([[i, firstYrowdot]])
@@ -258,16 +258,16 @@ for p in range(temp - 1, -1, -1):
 
 print(polja.__len__())
 # ------------------------plots---------------------------------
-br=0
-for p in polja:
-    #p = cv2.cvtColor(p, cv2.COLOR_GRAY2RGB)
-    # _, p = cv2.threshold(p, 127, 255, cv2.THRESH_OTSU)
-    # p = cv2.adaptiveThreshold(p, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 20)
-    # p = p / 255.0
-    plt.figure()
-    plt.imshow(p,cmap = plt.cm.gray)
-    plt.savefig('C:/Users/DELL/Desktop/slike/'+str(br)+'polje4'+'.png')
-    br=br+1
+# br=0
+# for p in polja:
+#     #p = cv2.cvtColor(p, cv2.COLOR_GRAY2RGB)
+#     # _, p = cv2.threshold(p, 127, 255, cv2.THRESH_OTSU)
+#     # p = cv2.adaptiveThreshold(p, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 20)
+#     # p = p / 255.0
+#     plt.figure()
+#     plt.imshow(p,cmap = plt.cm.gray)
+#     plt.savefig('C:/Users/DELL/Desktop/slike/'+str(br)+'polje12'+'.png')
+#     br=br+1
 
 print(polja.__len__())
 # print(intersections)
@@ -280,9 +280,9 @@ for i in intersections:
 class NN(nn.Module):
     def __init__(self):
         super().__init__()
-        self.lin = nn.Linear(2025, 600)
-        self.lin2=nn.Linear(600,200)
-        self.lin3=nn.Linear(200,13)
+        self.lin = nn.Linear(5184, 700)
+        self.lin2=nn.Linear(700,300)
+        self.lin3=nn.Linear(300,13)
 
     def forward(self, xb):
         x=F.relu(self.lin(xb))
@@ -294,11 +294,11 @@ nnet=NN()
 nnet.load_state_dict(torch.load("my_chess_model.pt"))
 # for param in nnet.parameters():
 #   print(param.data)
-nnet.eval()
-
-input_size = 2025  # 30x30  za svaku sliku
-hidden_sizes = [600, 200]
-output_size = 13  # 6 figura svake boje+prazno polje
+# nnet.eval()
+#
+# input_size = 5184  # 30x30  za svaku sliku
+# hidden_sizes = [700, 200]
+# output_size = 13  # 6 figura svake boje+prazno polje
 
 transf = transforms.Compose([transforms.ToPILImage(),
                             transforms.Resize([30, 30]),
@@ -351,7 +351,7 @@ for p in polja:
 
     p = transf(p)
 
-    p = p.view(1, 2025)
+    p = p.view(1, 5184)
 
     with torch.no_grad():
         logps = nnet(p)
@@ -364,8 +364,11 @@ for p in polja:
     #print(pred_label, switch(pred_label))
     matrix.append(switch(pred_label))
 
-matrix=np.reshape(matrix,(8,8),order='F')
-print(matrix)
+matrix1=np.reshape(matrix,(8,8),order='F')
+# matrix2=np.asmatrix(matrix)
+
+print(matrix1)
+# print(matrix2)
 
 plt.imshow(img)
 plt.show()

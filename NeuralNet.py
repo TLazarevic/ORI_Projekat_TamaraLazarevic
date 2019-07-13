@@ -159,9 +159,9 @@ class NN(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.lin = nn.Linear(5184, 600)
-        self.lin2=nn.Linear(600,200)
-        self.lin3=nn.Linear(200,13)
+        self.lin = nn.Linear(5184, 700)
+        self.lin2=nn.Linear(700,300)
+        self.lin3=nn.Linear(300,13)
 
 
     def forward(self, xb):
@@ -176,7 +176,7 @@ print(model)
 
 optimizer = optim.SGD(model.parameters(), lr=0.003, momentum=0.9,weight_decay=0.0001)
 time0 = time()
-epochs = 25
+epochs = 20
 
 trlo=[]
 testlo=[]
