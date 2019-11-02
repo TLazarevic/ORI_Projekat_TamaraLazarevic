@@ -21,11 +21,6 @@ class MyHOG(object):
 def hogF(im):
     im = np.asarray(im)
     im = np.array(im * 255, dtype=np.uint8)
-    # print(im)
-    # #
-    #
-    # plt.imshow(im)
-    # plt.show()
 
     nbins = 9  # broj binova
     cell_size = (3, 3)  # broj piksela po celiji
@@ -69,32 +64,13 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
                                           MyHOG(),
 
                                            transforms.ToTensor(),
-                                       #transforms.ToTensor(),
-                                           # transforms.Normalize([0.5], [0.5]),
-
-                                           #  lambda x: x >= 0,
-                                           #  lambda x: x.float(),
-                                           # transforms.Normalize(mean=[ 0.5],
-                                           #                      std=[ 0.5])
-
-
-
 
                                        ])
     test_transforms = transforms.Compose([transforms.CenterCrop(385),
                                     transforms.Resize([30,30]),
                                          transforms.Grayscale(),
                                           MyHOG(),
-
                                           transforms.ToTensor(),
-                                          #transforms.ToTensor(),
-                                          # transforms.Normalize([0.5], [0.5]),
-
-
-                                          #  lambda x: x >= 0,
-                                          #  lambda x: x.float(),
-                                          # transforms.Normalize(mean=[ 0.5],
-                                          #                      std=[ 0.5])
 
                                       ])
     t2=transforms.Compose([ transforms.ToTensor(),
@@ -110,20 +86,6 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
     print(test_data.__len__())
 
     tr2=datasets.VisionDataset(train_data,transform=t2)
-    # for images, labels in train_data:
-    #
-    #       #  images[i] = transforms.Resize([30, 30])
-    #         _, images = cv2.threshold(images, 127, 255, cv2.THRESH_OTSU)
-    #        # images[i] = transforms.ToTensor()
-    #
-    # for images, labels in test_data:
-    #
-    #        # images[i] = transforms.Resize([30, 30])
-    #         _, images = cv2.threshold(images, 127, 255, cv2.THRESH_OTSU)
-    #        # images[i] = transforms.ToTensor()
-    #
-    # train_data=train_transforms(train_data)
-    # test_data=test_transforms(test_data)
 
     num_train = len(train_data)
     indices = list(range(num_train))
@@ -145,13 +107,6 @@ def load_split_train_test(datadir,datadir2, valid_size = .2):            #organi
     return trainloader, testloader
 
 trainloader, testloader = load_split_train_test(data_dir,data_dir2, .2)
-
-# device = torch.device("cuda" if torch.cuda.is_available()
-#                                   else "cpu")
-#
-# input_size = 5184 #30x30  za svaku sliku
-# hidden_sizes = [700, 300]
-# output_size = 13 #6 figura svake boje+prazno polje
 
 criterion = nn.NLLLoss()
 
@@ -219,8 +174,6 @@ for e in range(epochs):
 print("\nTraining Time (in minutes) =", (time() - time0) / 60)
 
 torch.save(model.state_dict(), './my_chess_model.pt')
-# for param in model.parameters():
-#   print(param.data)
 
 plt.plot(trlo, label='Training loss')
 plt.plot(testlo, label='Validation loss')
